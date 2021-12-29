@@ -1,11 +1,11 @@
 {
-  "name": "rxjs-form",
-  "version": "0.3.0",
-  "description": "form validate with rxjs",
-  "main": "dist/rxjs-form.js",
-  "module": "dist/rxjs-form.esm.js",
-  "unpkg": "dist/rxjs-form.umd.js",
-  "jsdelivr": "dist/rxjs-form.umd.js",
+  "name": "vue-dx",
+  "version": "0.0.1",
+  "description": "vue state management",
+  "main": "dist/vue-dx.js",
+  "module": "dist/vue-dx.esm.js",
+  "unpkg": "dist/vue-dx.umd.js",
+  "jsdelivr": "dist/vue-dx.umd.js",
   "types": "types/index.d.ts",
   "files": [
     "src",
