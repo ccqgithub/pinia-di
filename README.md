@@ -145,3 +145,19 @@ import { useStore } from 'pinia-di';
 const testStore = useStore(TestStore)
 </script>
 ```
+
+## Use Component Provider
+
+> App.vue
+```vue
+<template>
+  <StoreProvider stores=[AppStore]>
+    <Root />
+  </> 
+</template>
+
+<script setup>
+import { AppStore } from '@/stores/appStore';
+import { useStore, StoreProvider } from 'pinia-di';
+</script>
+```
