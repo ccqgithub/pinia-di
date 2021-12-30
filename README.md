@@ -60,7 +60,7 @@ export const useMessageStore = MessageStore();
 ```vue
 <script setup>
 import { AppStore } from '@/stores/appStore';
-import { useMessageStore, MessageStore } from "@/stores/messageStore';
+import { useMessageStore, MessageStore } from '@/stores/messageStore';
 import { provideStores, useStore } from 'pinia-di';
 
 const messageStore = useMessageStore();
