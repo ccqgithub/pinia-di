@@ -6,10 +6,9 @@ import commonjs from '@rollup/plugin-commonjs';
 import typescript from 'rollup-plugin-typescript2';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 
-const resolve = (p) => path.resolve(__dirname, p);
+const resolve = (p) => path.resolve(process.cwd(), p);
 const pkg = require(resolve(`package.json`));
-const name = 'rxjs-form';
-const globalName = 'RxJSForm';
+const name = 'pinia-di';
 
 const extensions = ['.ts', '.tsx'];
 const sourceMap = !!process.env.SOURCE_MAP;
@@ -37,10 +36,6 @@ const makeTypescript = (declaration = true) => {
   });
 };
 
-const globals = {
-  'rxjs': 'rxjs',
-  'rxjs/operators': 'rxjs.operators'
-};
 const outputConfigs = {
   // common js
   cjs: {
@@ -122,76 +117,10 @@ const outputConfigs = {
         safari10: true
       })
     ]
-  },
-  // umd
-  umd: {
-    input: resolve('src/index.ts'),
-    output: {
-      file: resolve(`dist/${name}.umd.js`),
-      name: globalName,
-      format: `umd`,
-      globals
-    },
-    external: makeExternalPredicate([
-      ...Object.keys(pkg.peerDependencies || {})
-    ]),
-    plugins: [
-      nodeResolve({
-        extensions
-      }),
-      commonjs({
-        sourceMap: false
-      }),
-      makeTypescript(true),
-      babel({
-        babelHelpers: 'bundled'
-      }),
-      replace({
-        preventAssignment: true,
-        'process.env.NODE_ENV': JSON.stringify('development')
-      })
-    ]
-  },
-  // umd
-  'umd-prod': {
-    input: resolve('src/index.ts'),
-    output: {
-      file: resolve(`dist/${name}.umd.prod.js`),
-      name: globalName,
-      format: `umd`,
-      globals
-    },
-    external: makeExternalPredicate([
-      ...Object.keys(pkg.peerDependencies || {})
-    ]),
-    plugins: [
-      nodeResolve({
-        extensions
-      }),
-      commonjs({
-        sourceMap: false
-      }),
-      makeTypescript(true),
-      babel({
-        babelHelpers: 'bundled'
-      }),
-      replace({
-        preventAssignment: true,
-        'process.env.NODE_ENV': JSON.stringify('production')
-      }),
-      terser({
-        module: true,
-        compress: {
-          ecma: 2015,
-          pure_getters: true
-        },
-        safari10: true
-      })
-    ]
   }
 };
 
-const defaultFormats = ['cjs', 'esm', 'esm-browser', 'umd', 'umd-prod'];
+const defaultFormats = ['cjs', 'esm', 'esm-browser'];
 const inlineFormats = process.env.FORMATS && process.env.FORMATS.split(',');
 const packageFormats = inlineFormats || defaultFormats;
 const packageConfigs = packageFormats.map((format) => {

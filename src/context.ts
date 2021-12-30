@@ -1,5 +1,5 @@
 import { InjectionKey, getCurrentInstance } from 'vue';
-import { Injector } from '../di';
+import Injector from './injector';
 
 export const injectorKey: InjectionKey<Injector> = Symbol('Injector Key');
 

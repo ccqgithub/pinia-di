@@ -18,7 +18,7 @@ const commit = execa.sync('git', ['rev-parse', 'HEAD']).stdout.slice(0, 7);
 })();
 
 async function build() {
-  const pkgDir = __dirname;
+  const pkgDir = process.cwd();
 
   // if building a specific format, do not remove dist.
   if (!formats) {
