@@ -28,3 +28,10 @@ export const useStore: GetStore = (provide: any, opts: any) => {
   }
   return injector.get(provide, opts);
 };
+
+const storeIds: Record<string, number> = {};
+export const useStoreId = (id: string) => {
+  if (!storeIds[id]) storeIds[id] = 0;
+  storeIds[id]++;
+  return `${id}~${storeIds[id]}}`;
+};
