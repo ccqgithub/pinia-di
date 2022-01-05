@@ -9,24 +9,10 @@ Use [Pinia](https://github.com/vuejs/pinia) more flexibly!
 import { defineStore } from 'pinia';
 import { useStoreId } from 'pinia-di';
 
-export const AppStore = ({
-  getStore, 
-  onUnmounted,
-}) => {
-  // get other store that parent component or self provided
-  const otherStore = getStore(OtherStore);
+export const AppStore = () => {
   // define store, useStoreId('main') generate the unique id for per `Store Instance`
   const useMainstore = defineStore(useStoreId('main'), {
     state: {},
-    actions: {
-      dispose: () => {
-        //
-      }
-    }
-  })
-  // can do something when the store unmounted
-  onUnmounted(() => {
-    useMainstore().dispose();
   });
 
   return useMainstore();
@@ -113,6 +99,7 @@ export const MessageStore = ({ getStore }) => {
     state: {},
     actions: {
       test: () => {
+        // get other store that parent component or self provided
         const appStore = getStore(AppStore);
         console.log(appStore.xxx);
       }
@@ -121,6 +108,32 @@ export const MessageStore = ({ getStore }) => {
 }
 
 export const useMessageStore = MessageStore();
+```
+
+## Store Onunmounted
+
+> stores/appStore.ts
+```ts
+import { defineStore } from 'pinia';
+import { useStoreId } from 'pinia-di';
+
+export const AppStore = ({ onUnmounted }) => {
+  // define store, useStoreId('main') generate the unique id for per `Store Instance`
+  const useMainstore = defineStore(useStoreId('main'), {
+    state: {},
+    actions: {
+      dispose: () => {
+        //
+      }
+    }
+  });
+
+  onUnmounted(() => {
+    useMainstore().dispose();
+  });
+
+  return useMainstore();
+}
 ```
 
 ## Store Tree
