@@ -173,7 +173,7 @@ const testStore = useStore(TestStore)
 <template>
   <StoreProvider stores=[AppStore]>
     <Root />
-  </> 
+  </StoreProvider> 
 </template>
 
 <script setup>
