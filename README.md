@@ -7,11 +7,29 @@ Use [Pinia](https://github.com/vuejs/pinia) more flexibly!
 > stores/appStore.ts
 ```ts
 import { defineStore } from 'pinia';
+import { useStoreId } from 'pinia-di';
 
-export const AppStore = () => {
-  return defineStore('main', {
-    state: {}
+export const AppStore = ({
+  getStore, 
+  onUnmounted,
+}) => {
+  // get other store that parent component or self provided
+  const otherStore = getStore(OtherStore);
+  // define store, useStoreId('main') generate the unique id for per `Store Instance`
+  const useMainstore = defineStore(useStoreId('main'), {
+    state: {},
+    actions: {
+      dispose: () => {
+        //
+      }
+    }
   })
+  // can do something when the store unmounted
+  onUnmounted(() => {
+    useMainstore().dispose();
+  });
+
+  return useMainstore();
 }
 ```
 
@@ -46,9 +64,10 @@ const appStore = useStore(AppStore);
 > stores/messageStore.ts
 ```ts
 import { defineStore } from 'pinia';
+import { useStoreId } from 'pinia-di';
 
 export const MessageStore = () => {
-  return defineStore('message', {
+  return defineStore(useStoreId('message'), {
     state: {}
   });
 }
@@ -86,10 +105,11 @@ const messageStore = useStore(MessageStore);
 > stores/messageStore.ts
 ```ts
 import { defineStore } from 'pinia';
+import { useStoreId } from 'pinia-di';
 import { AppStore } from '@/stores/appStore';
 
 export const MessageStore = ({ getStore }) => {
-  return defineStore('message', {
+  return defineStore(useStoreId('message'), {
     state: {},
     actions: {
       test: () => {

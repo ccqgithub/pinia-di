@@ -1,4 +1,4 @@
-import { defineComponent, provide, inject, PropType } from 'vue';
+import { defineComponent, provide, inject, PropType, onUnmounted } from 'vue';
 import { InjectionProvide } from './types';
 import Injector from './Injector';
 import { injectorKey } from './context';
@@ -13,6 +13,9 @@ const StoreProvider = defineComponent({
       parent: parentInjector || null
     });
     provide(injectorKey, injector);
+    onUnmounted(() => {
+      injector.dispose();
+    });
   }
 });
 

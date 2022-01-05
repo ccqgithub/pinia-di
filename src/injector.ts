@@ -8,6 +8,7 @@ import {
 type ProviderRecord = {
   creator: StoreCreator;
   use?: InjectionValue<any>;
+  dispose?: () => void;
 };
 type ProviderRecords = Map<StoreCreator, ProviderRecord>;
 
@@ -84,9 +85,21 @@ export default class Injector {
     const ctx: InjectionContext = {
       getStore: (provide: StoreCreator, opts: any) => {
         return this.get(provide, opts);
+      },
+      onUnmounted: (fn: () => void) => {
+        record.dispose = fn;
       }
     };
 
     record.use = record.creator(ctx)();
+  }
+
+  dispose() {
+    const { records } = this;
+    const keys = records.keys();
+    for (const key of keys) {
+      const dispose = records.get(key)?.dispose;
+      dispose && dispose();
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { provide, inject, getCurrentInstance } from 'vue';
+import { provide, inject, getCurrentInstance, onUnmounted } from 'vue';
 import {
   injectorKey,
   instanceInjectorKey,
@@ -15,6 +15,9 @@ export const provideStores = (args: { stores: InjectionProvide[] }) => {
   });
   instance[instanceInjectorKey] = injector;
   provide(injectorKey, injector);
+  onUnmounted(() => {
+    injector.dispose();
+  });
 };
 
 export const useStore: GetStore = (provide: any, opts: any) => {
