@@ -59,9 +59,21 @@ class Injector$1 {
         const ctx = {
             getStore: (provide, opts) => {
                 return this.get(provide, opts);
+            },
+            onUnmounted: (fn) => {
+                record.dispose = fn;
             }
         };
         record.use = record.creator(ctx)();
+    }
+    dispose() {
+        var _a;
+        const { records } = this;
+        const keys = records.keys();
+        for (const key of keys) {
+            const dispose = (_a = records.get(key)) === null || _a === void 0 ? void 0 : _a.dispose;
+            dispose && dispose();
+        }
     }
 }
 
@@ -117,9 +129,21 @@ class Injector {
         const ctx = {
             getStore: (provide, opts) => {
                 return this.get(provide, opts);
+            },
+            onUnmounted: (fn) => {
+                record.dispose = fn;
             }
         };
         record.use = record.creator(ctx)();
+    }
+    dispose() {
+        var _a;
+        const { records } = this;
+        const keys = records.keys();
+        for (const key of keys) {
+            const dispose = (_a = records.get(key)) === null || _a === void 0 ? void 0 : _a.dispose;
+            dispose && dispose();
+        }
     }
 }
 
@@ -133,6 +157,9 @@ const StoreProvider = vue.defineComponent({
             parent: parentInjector || null
         });
         vue.provide(injectorKey, injector);
+        vue.onUnmounted(() => {
+            injector.dispose();
+        });
     }
 });
 
@@ -144,6 +171,9 @@ const provideStores = (args) => {
     });
     instance[instanceInjectorKey] = injector;
     vue.provide(injectorKey, injector);
+    vue.onUnmounted(() => {
+        injector.dispose();
+    });
 };
 const useStore = (provide, opts) => {
     const instance = vue.getCurrentInstance();
@@ -156,6 +186,13 @@ const useStore = (provide, opts) => {
     }
     return injector.get(provide, opts);
 };
+const storeIds = {};
+const useStoreId = (id) => {
+    if (!storeIds[id])
+        storeIds[id] = 0;
+    storeIds[id]++;
+    return `${id}~${storeIds[id]}}`;
+};
 
 exports.Injector = Injector$1;
 exports.StoreProvider = StoreProvider;
@@ -163,3 +200,4 @@ exports.injectorKey = injectorKey;
 exports.instanceInjectorKey = instanceInjectorKey;
 exports.provideStores = provideStores;
 exports.useStore = useStore;
+exports.useStoreId = useStoreId;

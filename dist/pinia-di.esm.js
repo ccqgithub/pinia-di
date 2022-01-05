@@ -1,4 +1,4 @@
-import { defineComponent, inject, provide, getCurrentInstance } from 'vue';
+import { defineComponent, inject, provide, onUnmounted, getCurrentInstance } from 'vue';
 
 const injectorKey = Symbol('Injector Key');
 const instanceInjectorKey = Symbol('Instance Injector Key');
@@ -55,9 +55,21 @@ class Injector$1 {
         const ctx = {
             getStore: (provide, opts) => {
                 return this.get(provide, opts);
+            },
+            onUnmounted: (fn) => {
+                record.dispose = fn;
             }
         };
         record.use = record.creator(ctx)();
+    }
+    dispose() {
+        var _a;
+        const { records } = this;
+        const keys = records.keys();
+        for (const key of keys) {
+            const dispose = (_a = records.get(key)) === null || _a === void 0 ? void 0 : _a.dispose;
+            dispose && dispose();
+        }
     }
 }
 
@@ -113,9 +125,21 @@ class Injector {
         const ctx = {
             getStore: (provide, opts) => {
                 return this.get(provide, opts);
+            },
+            onUnmounted: (fn) => {
+                record.dispose = fn;
             }
         };
         record.use = record.creator(ctx)();
+    }
+    dispose() {
+        var _a;
+        const { records } = this;
+        const keys = records.keys();
+        for (const key of keys) {
+            const dispose = (_a = records.get(key)) === null || _a === void 0 ? void 0 : _a.dispose;
+            dispose && dispose();
+        }
     }
 }
 
@@ -129,6 +153,9 @@ const StoreProvider = defineComponent({
             parent: parentInjector || null
         });
         provide(injectorKey, injector);
+        onUnmounted(() => {
+            injector.dispose();
+        });
     }
 });
 
@@ -140,6 +167,9 @@ const provideStores = (args) => {
     });
     instance[instanceInjectorKey] = injector;
     provide(injectorKey, injector);
+    onUnmounted(() => {
+        injector.dispose();
+    });
 };
 const useStore = (provide, opts) => {
     const instance = getCurrentInstance();
@@ -152,5 +182,12 @@ const useStore = (provide, opts) => {
     }
     return injector.get(provide, opts);
 };
+const storeIds = {};
+const useStoreId = (id) => {
+    if (!storeIds[id])
+        storeIds[id] = 0;
+    storeIds[id]++;
+    return `${id}~${storeIds[id]}}`;
+};
 
-export { Injector$1 as Injector, StoreProvider, injectorKey, instanceInjectorKey, provideStores, useStore };
+export { Injector$1 as Injector, StoreProvider, injectorKey, instanceInjectorKey, provideStores, useStore, useStoreId };

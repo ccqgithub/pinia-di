@@ -12,5 +12,6 @@ export default class Injector {
         optional?: false;
     }): InjectionValue<P>;
     private _initRecord;
+    dispose(): void;
 }
 //# sourceMappingURL=Injector.d.ts.map
