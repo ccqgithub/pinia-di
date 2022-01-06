@@ -91,7 +91,7 @@ export default class Injector {
       }
     };
 
-    record.use = record.creator(ctx)();
+    record.use = record.creator(ctx);
   }
 
   dispose() {

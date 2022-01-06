@@ -10,7 +10,7 @@ export type InjectionProvide =
       use?: StoreUse;
     };
 
-export type InjectionValue<P extends StoreCreator> = ReturnType<ReturnType<P>>;
+export type InjectionValue<P extends StoreCreator> = ReturnType<P>;
 
 export type InjectionContext = {
   getStore: GetStore;

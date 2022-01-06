@@ -64,7 +64,7 @@ class Injector$1 {
                 record.dispose = fn;
             }
         };
-        record.use = record.creator(ctx)();
+        record.use = record.creator(ctx);
     }
     dispose() {
         var _a;
@@ -134,7 +134,7 @@ class Injector {
                 record.dispose = fn;
             }
         };
-        record.use = record.creator(ctx)();
+        record.use = record.creator(ctx);
     }
     dispose() {
         var _a;

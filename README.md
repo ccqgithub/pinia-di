@@ -10,12 +10,9 @@ import { defineStore } from 'pinia';
 import { useStoreId } from 'pinia-di';
 
 export const AppStore = () => {
-  // define store, useStoreId('main') generate the unique id for per `Store Instance`
-  const useMainstore = defineStore(useStoreId('main'), {
+  return defineStore(useStoreId('main'), {
     state: {},
   });
-
-  return useMainstore();
 }
 ```
 
@@ -29,7 +26,7 @@ import { provideStores, useStore } from 'pinia-di';
 
 provideStores({ stores: [AppStore] });
 // can use by self
-const appStore = useStore(AppStore);
+const appStore = useStore(AppStore)();
 </script>
 ```
 
@@ -41,7 +38,7 @@ const appStore = useStore(AppStore);
 import { AppStore } from '@/stores/appStore';
 import { useStore } from 'pinia-di';
 
-const appStore = useStore(AppStore);
+const appStore = useStore(AppStore)();
 </script>
 ```
 
@@ -68,11 +65,9 @@ import { AppStore } from '@/stores/appStore';
 import { useMessageStore, MessageStore } from '@/stores/messageStore';
 import { provideStores, useStore } from 'pinia-di';
 
-const messageStore = useMessageStore();
-
-provideStores({ stores: [AppStore, { creator: MessageStore, use: messageStore }] });
+provideStores({ stores: [AppStore, { creator: MessageStore, use: useMessageStore }] });
 // can use by self
-const appStore = useStore(AppStore);
+const appStore = useStore(AppStore)();
 </script>
 ```
 
@@ -82,7 +77,7 @@ const appStore = useStore(AppStore);
 import { MessageStore } from '@/stores/messageStore';
 import { useStore } from 'pinia-di';
 
-const messageStore = useStore(MessageStore);
+const messageStore = useStore(MessageStore)();
 </script>
 ```
 
@@ -175,7 +170,7 @@ import { TestStore } from '@/stores/testStore';
 import { useStore } from 'pinia-di';
 
 // will get the store provided by ParentB
-const testStore = useStore(TestStore)
+const testStore = useStore(TestStore)();
 </script>
 ```
 
