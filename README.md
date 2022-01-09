@@ -10,7 +10,7 @@ Use [Pinia](https://github.com/vuejs/pinia) more flexibly!
 
 ## InjectionContext: `{ getStore, useStoreId, onUnmounted }`
 
-`getStore`: Get other store that have been provided by parent component or self component`.
+`getStore`: Get other store that have been provided by parent component or self component.
 ```ts
 import { InjectionContext } from 'pinia-di';
 import { OtherStore } from './stores/other';
