@@ -2,7 +2,7 @@
 
 在 [Pinia](https://github.com/vuejs/pinia) 中使用 DI(dependency-injection：依赖注入)。 依赖 vue@3。
 
-[English Document](../READNE.md)
+[English Document](../README.md)
 
 ## 核心概念
 
