@@ -20,7 +20,7 @@ export const AppStore = ({ getStore }: InjectionContext) => {
     state: {},
     actions: {
       test() {
-        const otherStore = getStore(OtherStore);
+        const otherStore = getStore(OtherStore)();
         console.log(otherStore.xx);
       }
     }
