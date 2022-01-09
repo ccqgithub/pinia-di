@@ -15,6 +15,7 @@ export type InjectionValue<P extends StoreCreator> = ReturnType<P>;
 export type InjectionContext = {
   getStore: GetStore;
   onUnmounted: (fn: () => void) => void;
+  useStoreId: (id: string) => string;
 };
 
 export interface GetStore {

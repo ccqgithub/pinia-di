@@ -1,1 +1,1 @@
-{"version":3,"file":"StoreProvider.d.ts","sourceRoot":"","sources":["../../../src/StoreProvider.ts"],"names":[],"mappings":"AAAA,OAAO,EAAoC,QAAQ,EAAe,MAAM,KAAK,CAAC;AAC9E,OAAO,EAAE,gBAAgB,EAAE,MAAM,SAAS,CAAC;AAI3C,QAAA,MAAM,aAAa;;;;;;;;;YAcjB,CAAC;AAEH,eAAe,aAAa,CAAC"}
+{"version":3,"file":"StoreProvider.d.ts","sourceRoot":"","sources":["../../../src/StoreProvider.ts"],"names":[],"mappings":"AAAA,OAAO,EAAoC,QAAQ,EAAe,MAAM,KAAK,CAAC;AAC9E,OAAO,EAAE,gBAAgB,EAAE,MAAM,SAAS,CAAC;AAI3C,QAAA,MAAM,aAAa;;;;;;;;;;;;;;;;OAgBjB,CAAC;AAEH,eAAe,aAAa,CAAC"}

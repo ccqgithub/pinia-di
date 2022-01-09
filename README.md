@@ -7,9 +7,9 @@ Use [Pinia](https://github.com/vuejs/pinia) more flexibly!
 > stores/appStore.ts
 ```ts
 import { defineStore } from 'pinia';
-import { useStoreId } from 'pinia-di';
+import { InjectionContext } from 'pinia-di';
 
-export const AppStore = () => {
+export const AppStore = ({ useStoreId }: InjectionContext) => {
   return defineStore(useStoreId('main'), {
     state: {},
   });
@@ -24,7 +24,7 @@ export const AppStore = () => {
 import { AppStore } from '@/stores/appStore';
 import { provideStores, useStore } from 'pinia-di';
 
-provideStores({ stores: [AppStore] });
+provideStores({ stores: [AppStore] }, name: 'app');
 // can use by self
 const appStore = useStore(AppStore)();
 </script>
@@ -47,9 +47,8 @@ const appStore = useStore(AppStore)();
 > stores/messageStore.ts
 ```ts
 import { defineStore } from 'pinia';
-import { useStoreId } from 'pinia-di';
 
-export const MessageStore = () => {
+export const MessageStore = ({ useStoreId }: InjectionContext) => {
   return defineStore(useStoreId('message'), {
     state: {}
   });
@@ -65,7 +64,7 @@ import { AppStore } from '@/stores/appStore';
 import { useMessageStore, MessageStore } from '@/stores/messageStore';
 import { provideStores, useStore } from 'pinia-di';
 
-provideStores({ stores: [AppStore, { creator: MessageStore, use: useMessageStore }] });
+provideStores({ stores: [AppStore, { creator: MessageStore, use: useMessageStore }] }, name: 'App');
 // can use by self
 const appStore = useStore(AppStore)();
 </script>
@@ -87,9 +86,8 @@ const messageStore = useStore(MessageStore)();
 ```ts
 import { defineStore } from 'pinia';
 import { useStoreId } from 'pinia-di';
-import { AppStore } from '@/stores/appStore';
 
-export const MessageStore = ({ getStore }) => {
+export const MessageStore = ({ getStore, useStoreId }: InjectionContext) => {
   return defineStore(useStoreId('message'), {
     state: {},
     actions: {
@@ -110,9 +108,8 @@ export const useMessageStore = MessageStore();
 > stores/appStore.ts
 ```ts
 import { defineStore } from 'pinia';
-import { useStoreId } from 'pinia-di';
 
-export const AppStore = ({ onUnmounted }) => {
+export const AppStore = ({ onUnmounted, useStoreId }: InjectionContext) => {
   // define store, useStoreId('main') generate the unique id for per `Store Instance`
   const useMainstore = defineStore(useStoreId('main'), {
     state: {},
@@ -145,7 +142,7 @@ If same `store creator` provided by more than one parent, the `useStore` will ge
 import { TestStore } from '@/stores/testStore';
 import { provideStores } from 'pinia-di';
 
-provideStores({ stores: [TestStore] });
+provideStores({ stores: [TestStore] }, name: 'ParentA');
 </script>
 ```
 
@@ -159,7 +156,7 @@ provideStores({ stores: [TestStore] });
 import { TestStore } from '@/stores/testStore';
 import { provideStores } from 'pinia-di';
 
-provideStores({ stores: [TestStore] });
+provideStores({ stores: [TestStore] }, name: 'ParentB');
 </script>
 ```
 
@@ -179,13 +176,13 @@ const testStore = useStore(TestStore)();
 > App.vue
 ```vue
 <template>
-  <StoreProvider stores=[AppStore]>
+  <StoreProvider stores=[AppStore] name="App">
     <Root />
   </StoreProvider> 
 </template>
 
 <script setup>
 import { AppStore } from '@/stores/appStore';
-import { useStore, StoreProvider } from 'pinia-di';
+import { StoreProvider } from 'pinia-di';
 </script>
 ```

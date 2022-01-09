@@ -12,8 +12,14 @@ type ProviderRecord = {
 };
 type ProviderRecords = Map<StoreCreator, ProviderRecord>;
 
+let injectorId = 0;
+
 // service injector
 export default class Injector {
+  // injector id
+  id = '';
+  // injector nme
+  name = '';
   // parent injector
   private parent: Injector | null = null;
   // 当前 injector 上的服务记录
@@ -23,10 +29,13 @@ export default class Injector {
     providers: InjectionProvide[],
     opts: {
       parent: Injector | null;
+      name?: string;
     }
   ) {
-    const { parent = null } = opts;
+    const { parent = null, name = '' } = opts;
 
+    this.id = `${injectorId++}`;
+    this.name = name;
     this.parent = parent;
 
     // provider records
@@ -88,6 +97,11 @@ export default class Injector {
       },
       onUnmounted: (fn: () => void) => {
         record.dispose = fn;
+      },
+      useStoreId: (id: string) => {
+        return this.name
+          ? `${id}~[${this.name}]~<${this.id}>`
+          : `${id}~<${this.id}>`;
       }
     };
 

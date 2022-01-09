@@ -7,11 +7,15 @@ import {
 import { InjectionProvide, GetStore } from './types';
 import Injector from './injector';
 
-export const provideStores = (args: { stores: InjectionProvide[] }) => {
+export const provideStores = (args: {
+  stores: InjectionProvide[];
+  name?: string;
+}) => {
   const instance = getCurrentInstance() as InstanceWithInjector;
   const parentInjector = inject(injectorKey, null);
   const injector = new Injector(args.stores, {
-    parent: parentInjector
+    parent: parentInjector,
+    name: args.name
   });
   instance[instanceInjectorKey] = injector;
   provide(injectorKey, injector);
@@ -30,11 +34,4 @@ export const useStore: GetStore = (provide: any, opts: any) => {
     return null;
   }
   return injector.get(provide, opts);
-};
-
-const storeIds: Record<string, number> = {};
-export const useStoreId = (id: string) => {
-  if (!storeIds[id]) storeIds[id] = 0;
-  storeIds[id]++;
-  return `${id}~${storeIds[id]}}`;
 };

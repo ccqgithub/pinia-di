@@ -7,14 +7,21 @@ var vue = require('vue');
 const injectorKey = Symbol('Injector Key');
 const instanceInjectorKey = Symbol('Instance Injector Key');
 
+let injectorId$1 = 0;
 // service injector
 class Injector$1 {
     constructor(providers, opts) {
+        // injector id
+        this.id = '';
+        // injector nme
+        this.name = '';
         // parent injector
         this.parent = null;
         // 当前 injector 上的服务记录
         this.records = new Map();
-        const { parent = null } = opts;
+        const { parent = null, name = '' } = opts;
+        this.id = `${injectorId$1++}`;
+        this.name = name;
         this.parent = parent;
         // provider records
         providers.forEach((provider) => {
@@ -62,6 +69,11 @@ class Injector$1 {
             },
             onUnmounted: (fn) => {
                 record.dispose = fn;
+            },
+            useStoreId: (id) => {
+                return this.name
+                    ? `${id}~[${this.name}]~<${this.id}>`
+                    : `${id}~<${this.id}>`;
             }
         };
         record.use = record.creator(ctx);
@@ -77,14 +89,21 @@ class Injector$1 {
     }
 }
 
+let injectorId = 0;
 // service injector
 class Injector {
     constructor(providers, opts) {
+        // injector id
+        this.id = '';
+        // injector nme
+        this.name = '';
         // parent injector
         this.parent = null;
         // 当前 injector 上的服务记录
         this.records = new Map();
-        const { parent = null } = opts;
+        const { parent = null, name = '' } = opts;
+        this.id = `${injectorId++}`;
+        this.name = name;
         this.parent = parent;
         // provider records
         providers.forEach((provider) => {
@@ -132,6 +151,11 @@ class Injector {
             },
             onUnmounted: (fn) => {
                 record.dispose = fn;
+            },
+            useStoreId: (id) => {
+                return this.name
+                    ? `${id}~[${this.name}]~<${this.id}>`
+                    : `${id}~<${this.id}>`;
             }
         };
         record.use = record.creator(ctx);
@@ -149,12 +173,14 @@ class Injector {
 
 const StoreProvider = vue.defineComponent({
     props: {
-        stores: { type: Object, required: true }
+        stores: { type: Object, required: true },
+        name: { type: String, requred: false }
     },
     setup(props) {
         const parentInjector = vue.inject(injectorKey);
         const injector = new Injector(props.stores, {
-            parent: parentInjector || null
+            parent: parentInjector || null,
+            name: props.name
         });
         vue.provide(injectorKey, injector);
         vue.onUnmounted(() => {
@@ -167,7 +193,8 @@ const provideStores = (args) => {
     const instance = vue.getCurrentInstance();
     const parentInjector = vue.inject(injectorKey, null);
     const injector = new Injector$1(args.stores, {
-        parent: parentInjector
+        parent: parentInjector,
+        name: args.name
     });
     instance[instanceInjectorKey] = injector;
     vue.provide(injectorKey, injector);
@@ -186,13 +213,6 @@ const useStore = (provide, opts) => {
     }
     return injector.get(provide, opts);
 };
-const storeIds = {};
-const useStoreId = (id) => {
-    if (!storeIds[id])
-        storeIds[id] = 0;
-    storeIds[id]++;
-    return `${id}~${storeIds[id]}}`;
-};
 
 exports.Injector = Injector$1;
 exports.StoreProvider = StoreProvider;
@@ -200,4 +220,3 @@ exports.injectorKey = injectorKey;
 exports.instanceInjectorKey = instanceInjectorKey;
 exports.provideStores = provideStores;
 exports.useStore = useStore;
-exports.useStoreId = useStoreId;
