@@ -1,18 +1,18 @@
-# pinia-id: Use [Pinia](https://github.com/vuejs/pinia) more flexibly!
+# pinia-id: 更灵活地使用 [Pinia](https://github.com/vuejs/pinia)！
 
-DI(dependency-injection) for pinia. work with vue@3
+在 [Pinia](https://github.com/vuejs/pinia) 中使用 DI(dependency-injection：依赖注入)。 依赖 vue@3。
 
-[中文文档](./docs/zh-CN.md)
+[English Document](../READNE.md)
 
-## Core Concepts
+## 核心概念
 
-- `Store Use`: The `return` of [defineStore](https://pinia.vuejs.org/core-concepts/#defining-a-store).
-- `Store Creator`: A function that return a `Store Use`.
-- `InjectionContext`: The parameter that the `Store Creator` will receive.
+- `Store Use`: Pinia 的 [defineStore](https://pinia.vuejs.org/core-concepts/#defining-a-store) 的返回值.
+- `Store Creator`: 一个返回 `Store Use` 的函数。
+- `InjectionContext`: `Store Creator` 调用时收到的参数。
 
 ## InjectionContext: `{ getStore, useStoreId, onUnmounted }`
 
-`getStore`: Get other store that have been provided by parent component or self component.
+`getStore`: 获取当前组建或者父组件提供的`Store Use`。
 ```ts
 import { InjectionContext } from 'pinia-di';
 import { OtherStore } from './stores/other';
@@ -30,7 +30,7 @@ export const AppStore = ({ getStore }: InjectionContext) => {
 }
 ```
 
-`useStoreId`: Because `pinia` use `id` to identify one store, but our `Store Creator` maybe use multiple times, so we need a method `useStoreId` to generate the unique id.
+`useStoreId`: 因为 `pinia` 使用 `id` 来标识一个Store, 但是 `Store Creator` 可能会被调用多次生成多个Store, 所以我们需要 `useStoreId` 来为每个Store生成唯一的ID。
 ```ts
 import { InjectionContext } from 'pinia-di';
 export const TestStore = ({ useStoreId }: InjectionContext) => {
@@ -40,7 +40,7 @@ export const TestStore = ({ useStoreId }: InjectionContext) => {
 }
 ```
 
-`onUnmounted`: Bind a function that will be invoked when the store unmounted.
+`onUnmounted`: 绑定一个函数，这个函数在Store被卸载时调用。
 ```ts
 import { InjectionContext } from 'pinia-di';
 export const TestStore = ({ onUnmounted }: InjectionContext) => {
@@ -61,7 +61,7 @@ export const TestStore = ({ onUnmounted }: InjectionContext) => {
 }
 ```
 
-## Define `Store Creator`
+## 定义 `Store Creator`
 
 > stores/appStore.ts
 ```ts
@@ -75,7 +75,7 @@ export const AppStore = ({ useStoreId }: InjectionContext) => {
 }
 ```
 
-## Provide Store
+## 提供 Store
 
 > App.vue
 ```vue
@@ -84,12 +84,12 @@ import { provideStores, useStore } from 'pinia-di';
 import { AppStore } from '@/stores/appStore';
 
 provideStores({ stores: [AppStore] }, name: 'App');
-// can use by self
+// 可以被自己使用
 const appStore = useStore(AppStore)();
 </script>
 ```
 
-## Use Store
+## 使用 Store
 
 > Component.vue
 ```vue
@@ -101,7 +101,7 @@ const appStore = useStore(AppStore)();
 </script>
 ```
 
-## Store Out Of Componet
+## 在组件外面使用 Store
 
 > stores/messageStore.ts
 ```ts
@@ -124,7 +124,7 @@ import { AppStore } from '@/stores/appStore';
 import { useMessageStore, MessageStore } from '@/stores/messageStore';
 
 provideStores({ stores: [AppStore, { creator: MessageStore, use: useMessageStore }] }, name: 'App');
-// can use by self
+// 可以被自己使用
 const appStore = useStore(AppStore)();
 </script>
 ```
@@ -139,7 +139,7 @@ const messageStore = useStore(MessageStore)();
 </script>
 ```
 
-## Get Other Stores In Sotre
+## 在 Store 里面获取另外的 Store
 
 > stores/messageStore.ts
 ```ts
@@ -151,7 +151,7 @@ export const MessageStore = ({ getStore, useStoreId }: InjectionContext) => {
     state: {},
     actions: {
       test: () => {
-        // get other store that parent component or self provided
+        // 获取当前组建或者父组件提供的`Store Use`。
         const appStore = getStore(AppStore);
         console.log(appStore.xxx);
       }
@@ -162,14 +162,14 @@ export const MessageStore = ({ getStore, useStoreId }: InjectionContext) => {
 export const useMessageStore = MessageStore();
 ```
 
-## Store Onunmounted
+## Store 卸载
 
 > stores/appStore.ts
 ```ts
 import { defineStore } from 'pinia';
 
 export const AppStore = ({ onUnmounted, useStoreId }: InjectionContext) => {
-  // define store, useStoreId('main') generate the unique id for per `Store Instance`
+  // 定义 Store, useStoreId('main') 生成唯一的ID。
   const useMainstore = defineStore(useStoreId('main'), {
     state: {},
     actions: {
@@ -189,7 +189,7 @@ export const AppStore = ({ onUnmounted, useStoreId }: InjectionContext) => {
 
 ## Store Tree
 
-If same `store creator` provided by more than one parent, the `useStore` will get the nearest one.
+如果一个 `store creator`被祖先组件提供多次, `useStore`或获取到最近的一个。
 
 > ParentA.Vue
 ```vue
@@ -230,7 +230,7 @@ const testStore = useStore(TestStore)();
 </script>
 ```
 
-## Use Component Provider
+## 使用 `StoreProvider` 组件来提供 `Store`。
 
 > App.vue
 ```vue
