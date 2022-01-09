@@ -2,6 +2,63 @@
 
 Use [Pinia](https://github.com/vuejs/pinia) more flexibly!
 
+## Essentials
+
+- `Store Use`: The `return` of [defineStore](https://pinia.vuejs.org/core-concepts/#defining-a-store).
+- `Store Creator`: A function that return a `Store Use`.
+- `InjectionContext`: The parameter that the `Store Creator` will receive.
+
+## InjectionContext: `{ getStore, useStoreId, onUnmounted }`
+
+`getStore`: Get other store that have been provided by parent component or self component`.
+```ts
+import { InjectionContext } from 'pinia-di';
+import { OtherStore } from './stores/other';
+
+export const AppStore = ({ getStore }: InjectionContext) => {
+  return defineStore('app', {
+    state: {},
+    actions: {
+      test() {
+        const otherStore = getStore(OtherStore);
+        console.log(otherStore.xx);
+      }
+    }
+  });
+}
+```
+
+`useStoreId`: Because `pinia` use `id` to identify one store, but our `Store Creator` maybe use multiple times, so we need a method `useStoreId` to generate the unique id.
+```ts
+import { InjectionContext } from 'pinia-di';
+export const TestStore = ({ useStoreId }: InjectionContext) => {
+  return defineStore(useStoreId('test'), {
+    state: {},
+  });
+}
+```
+
+`onUnmounted`: Bind a function that will be invoked when the store unmounted.
+```ts
+import { InjectionContext } from 'pinia-di';
+export const TestStore = ({ onUnmounted }: InjectionContext) => {
+  const useTestStore = defineStore(useStoreId('test'), {
+    state: {},
+    actions: {
+      dispose() {
+        console.log('dispose');
+      }
+    }
+  });
+
+  onUnmounted(() => {
+    useTestStore().dispose();
+  });
+
+  return useTestStore;
+}
+```
+
 ## Define `Store Creator`
 
 > stores/appStore.ts
@@ -21,10 +78,10 @@ export const AppStore = ({ useStoreId }: InjectionContext) => {
 > App.vue
 ```vue
 <script setup>
-import { AppStore } from '@/stores/appStore';
 import { provideStores, useStore } from 'pinia-di';
+import { AppStore } from '@/stores/appStore';
 
-provideStores({ stores: [AppStore] }, name: 'app');
+provideStores({ stores: [AppStore] }, name: 'App');
 // can use by self
 const appStore = useStore(AppStore)();
 </script>
@@ -35,8 +92,8 @@ const appStore = useStore(AppStore)();
 > Component.vue
 ```vue
 <script setup>
-import { AppStore } from '@/stores/appStore';
 import { useStore } from 'pinia-di';
+import { AppStore } from '@/stores/appStore';
 
 const appStore = useStore(AppStore)();
 </script>
@@ -60,9 +117,9 @@ export const useMessageStore = MessageStore();
 > App.vue
 ```vue
 <script setup>
+import { provideStores, useStore } from 'pinia-di';
 import { AppStore } from '@/stores/appStore';
 import { useMessageStore, MessageStore } from '@/stores/messageStore';
-import { provideStores, useStore } from 'pinia-di';
 
 provideStores({ stores: [AppStore, { creator: MessageStore, use: useMessageStore }] }, name: 'App');
 // can use by self
@@ -73,8 +130,8 @@ const appStore = useStore(AppStore)();
 > Component.vue
 ```vue
 <script setup>
-import { MessageStore } from '@/stores/messageStore';
 import { useStore } from 'pinia-di';
+import { MessageStore } from '@/stores/messageStore';
 
 const messageStore = useStore(MessageStore)();
 </script>
@@ -139,8 +196,8 @@ If same `store creator` provided by more than one parent, the `useStore` will ge
 </template>
 
 <script setup>
-import { TestStore } from '@/stores/testStore';
 import { provideStores } from 'pinia-di';
+import { TestStore } from '@/stores/testStore';
 
 provideStores({ stores: [TestStore] }, name: 'ParentA');
 </script>
@@ -153,8 +210,8 @@ provideStores({ stores: [TestStore] }, name: 'ParentA');
 </template>
 
 <script setup>
-import { TestStore } from '@/stores/testStore';
 import { provideStores } from 'pinia-di';
+import { TestStore } from '@/stores/testStore';
 
 provideStores({ stores: [TestStore] }, name: 'ParentB');
 </script>
@@ -163,8 +220,8 @@ provideStores({ stores: [TestStore] }, name: 'ParentB');
 > Child.Vue
 ```vue
 <script setup>
-import { TestStore } from '@/stores/testStore';
 import { useStore } from 'pinia-di';
+import { TestStore } from '@/stores/testStore';
 
 // will get the store provided by ParentB
 const testStore = useStore(TestStore)();
@@ -182,7 +239,7 @@ const testStore = useStore(TestStore)();
 </template>
 
 <script setup>
-import { AppStore } from '@/stores/appStore';
 import { StoreProvider } from 'pinia-di';
+import { AppStore } from '@/stores/appStore';
 </script>
 ```
