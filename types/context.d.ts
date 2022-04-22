@@ -1,8 +1,4 @@
-import { InjectionKey, ComponentInternalInstance } from 'vue';
+import { InjectionKey, Ref } from 'vue';
 import Injector from './injector';
-export declare const injectorKey: InjectionKey<Injector>;
-export declare const instanceInjectorKey: unique symbol;
-export declare type InstanceWithInjector = ComponentInternalInstance & {
-    [instanceInjectorKey]: Injector;
-};
+export declare const injectorKey: InjectionKey<Ref<Injector>>;
 //# sourceMappingURL=context.d.ts.map

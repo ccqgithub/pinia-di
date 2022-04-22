@@ -2,7 +2,8 @@ import {
   InjectionProvide,
   InjectionValue,
   InjectionContext,
-  StoreCreator
+  StoreCreator,
+  InjectionProvideObj
 } from './types';
 
 type ProviderRecord = {
@@ -20,6 +21,8 @@ export default class Injector {
   id = '';
   // injector nme
   name = '';
+  // configs
+  private providers: InjectionProvide[] = [];
   // parent injector
   private parent: Injector | null = null;
   // 当前 injector 上的服务记录
@@ -28,20 +31,42 @@ export default class Injector {
   constructor(
     providers: InjectionProvide[],
     opts: {
-      parent: Injector | null;
+      parent?: Injector | null;
+      oldInjector?: Injector | null;
       name?: string;
-    }
+    } = {}
   ) {
-    const { parent = null, name = '' } = opts;
+    const { parent = null, oldInjector = null, name = '' } = opts;
 
     this.id = `${injectorId++}`;
     this.name = name;
     this.parent = parent;
 
+    const oldProviders = oldInjector?.providers || [];
+    const oldUsedKeys: StoreCreator[] = [];
     // provider records
     providers.forEach((provider) => {
-      let record: ProviderRecord | null = null;
+      const key = typeof provider === 'object' ? provider.creator : provider;
+      const oldProvider = oldProviders.find((item) => {
+        return item === key || (item as InjectionProvideObj).creator === key;
+      });
+      // has old
+      if (oldProvider) {
+        const oP: InjectionProvideObj =
+          typeof oldProvider === 'object'
+            ? oldProvider
+            : { creator: oldProvider };
+        const p: InjectionProvideObj =
+          typeof provider === 'object' ? provider : { creator: provider };
+        // if the old config of store not change, remain use it
+        if (p.creator === oP.creator && p.use === oP.use) {
+          oldUsedKeys.push(p.creator);
+          this.records.set(p.creator, oldInjector!.records.get(p.creator)!);
+          return;
+        }
+      }
 
+      let record: ProviderRecord | null = null;
       if (typeof provider === 'object') {
         record = { ...provider };
       } else if (typeof provider === 'function') {
@@ -58,6 +83,17 @@ export default class Injector {
 
       this.records.set(record.creator, record);
     });
+
+    // dispose old instance
+    oldProviders.forEach((v) => {
+      const key = typeof v === 'object' ? v.creator : v;
+      if (oldUsedKeys.includes(key)) return;
+      const record = oldInjector?.records.get(key);
+      record?.dispose?.();
+    });
+
+    // set providers conf to adjust change
+    this.providers = providers;
   }
 
   get<P extends StoreCreator>(

@@ -1,10 +1,11 @@
 import { StoreDefinition } from 'pinia';
 export declare type StoreCreator = (ctx: InjectionContext) => StoreDefinition;
 export declare type StoreUse = StoreDefinition;
-export declare type InjectionProvide = StoreCreator | {
+export declare type InjectionProvideObj = {
     creator: StoreCreator;
     use?: StoreUse;
 };
+export declare type InjectionProvide = StoreCreator | InjectionProvideObj;
 export declare type InjectionValue<P extends StoreCreator> = ReturnType<P>;
 export declare type InjectionContext = {
     getStore: GetStore;

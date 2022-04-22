@@ -1,5 +1,5 @@
 import { InjectionProvide, GetStore } from './types';
-export declare const provideStores: (args: {
+export declare const useProvideStores: (props: {
     stores: InjectionProvide[];
     name?: string;
 }) => void;

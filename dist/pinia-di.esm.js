@@ -1,26 +1,46 @@
-import { defineComponent, inject, provide, onUnmounted, getCurrentInstance } from 'vue';
+import { defineComponent, inject, ref, watch, provide, onUnmounted, computed } from 'vue';
 
 const injectorKey = Symbol('Injector Key');
-const instanceInjectorKey = Symbol('Instance Injector Key');
 
 let injectorId$1 = 0;
 // service injector
 class Injector$1 {
-    constructor(providers, opts) {
+    constructor(providers, opts = {}) {
         // injector id
         this.id = '';
         // injector nme
         this.name = '';
+        // configs
+        this.providers = [];
         // parent injector
         this.parent = null;
         // 当前 injector 上的服务记录
         this.records = new Map();
-        const { parent = null, name = '' } = opts;
+        const { parent = null, oldInjector = null, name = '' } = opts;
         this.id = `${injectorId$1++}`;
         this.name = name;
         this.parent = parent;
+        const oldProviders = (oldInjector === null || oldInjector === void 0 ? void 0 : oldInjector.providers) || [];
+        const oldUsedKeys = [];
         // provider records
         providers.forEach((provider) => {
+            const key = typeof provider === 'object' ? provider.creator : provider;
+            const oldProvider = oldProviders.find((item) => {
+                return item === key || item.creator === key;
+            });
+            // has old
+            if (oldProvider) {
+                const oP = typeof oldProvider === 'object'
+                    ? oldProvider
+                    : { creator: oldProvider };
+                const p = typeof provider === 'object' ? provider : { creator: provider };
+                // if the old config of store not change, remain use it
+                if (p.creator === oP.creator && p.use === oP.use) {
+                    oldUsedKeys.push(p.creator);
+                    this.records.set(p.creator, oldInjector.records.get(p.creator));
+                    return;
+                }
+            }
             let record = null;
             if (typeof provider === 'object') {
                 record = Object.assign({}, provider);
@@ -37,6 +57,17 @@ class Injector$1 {
             }
             this.records.set(record.creator, record);
         });
+        // dispose old instance
+        oldProviders.forEach((v) => {
+            var _a;
+            const key = typeof v === 'object' ? v.creator : v;
+            if (oldUsedKeys.includes(key))
+                return;
+            const record = oldInjector === null || oldInjector === void 0 ? void 0 : oldInjector.records.get(key);
+            (_a = record === null || record === void 0 ? void 0 : record.dispose) === null || _a === void 0 ? void 0 : _a.call(record);
+        });
+        // set providers conf to adjust change
+        this.providers = providers;
     }
     get(provide, args) {
         const record = this.records.get(provide);
@@ -88,21 +119,42 @@ class Injector$1 {
 let injectorId = 0;
 // service injector
 class Injector {
-    constructor(providers, opts) {
+    constructor(providers, opts = {}) {
         // injector id
         this.id = '';
         // injector nme
         this.name = '';
+        // configs
+        this.providers = [];
         // parent injector
         this.parent = null;
         // 当前 injector 上的服务记录
         this.records = new Map();
-        const { parent = null, name = '' } = opts;
+        const { parent = null, oldInjector = null, name = '' } = opts;
         this.id = `${injectorId++}`;
         this.name = name;
         this.parent = parent;
+        const oldProviders = (oldInjector === null || oldInjector === void 0 ? void 0 : oldInjector.providers) || [];
+        const oldUsedKeys = [];
         // provider records
         providers.forEach((provider) => {
+            const key = typeof provider === 'object' ? provider.creator : provider;
+            const oldProvider = oldProviders.find((item) => {
+                return item === key || item.creator === key;
+            });
+            // has old
+            if (oldProvider) {
+                const oP = typeof oldProvider === 'object'
+                    ? oldProvider
+                    : { creator: oldProvider };
+                const p = typeof provider === 'object' ? provider : { creator: provider };
+                // if the old config of store not change, remain use it
+                if (p.creator === oP.creator && p.use === oP.use) {
+                    oldUsedKeys.push(p.creator);
+                    this.records.set(p.creator, oldInjector.records.get(p.creator));
+                    return;
+                }
+            }
             let record = null;
             if (typeof provider === 'object') {
                 record = Object.assign({}, provider);
@@ -119,6 +171,17 @@ class Injector {
             }
             this.records.set(record.creator, record);
         });
+        // dispose old instance
+        oldProviders.forEach((v) => {
+            var _a;
+            const key = typeof v === 'object' ? v.creator : v;
+            if (oldUsedKeys.includes(key))
+                return;
+            const record = oldInjector === null || oldInjector === void 0 ? void 0 : oldInjector.records.get(key);
+            (_a = record === null || record === void 0 ? void 0 : record.dispose) === null || _a === void 0 ? void 0 : _a.call(record);
+        });
+        // set providers conf to adjust change
+        this.providers = providers;
     }
     get(provide, args) {
         const record = this.records.get(provide);
@@ -173,41 +236,79 @@ const StoreProvider = defineComponent({
         name: { type: String, requred: false }
     },
     setup(props) {
-        const parentInjector = inject(injectorKey);
-        const injector = new Injector(props.stores, {
-            parent: parentInjector || null,
+        const parentInjector = inject(injectorKey, null);
+        const initInjector = new Injector(props.stores, {
+            parent: (parentInjector === null || parentInjector === void 0 ? void 0 : parentInjector.value) || null,
+            oldInjector: null,
             name: props.name
+        });
+        const injector = ref(initInjector);
+        let oldInjector = initInjector;
+        const stopWatch = watch(() => {
+            return {
+                parent: (parentInjector === null || parentInjector === void 0 ? void 0 : parentInjector.value) || null,
+                stores: props.stores
+            };
+        }, ({ parent, stores }) => {
+            injector.value = new Injector(stores, {
+                parent,
+                oldInjector,
+                name: props.name
+            });
+            oldInjector = injector.value;
         });
         provide(injectorKey, injector);
         onUnmounted(() => {
-            injector.dispose();
+            stopWatch();
+            injector.value.dispose();
         });
     }
 });
 
-const provideStores = (args) => {
-    const instance = getCurrentInstance();
+const useProvideStores = (props) => {
     const parentInjector = inject(injectorKey, null);
-    const injector = new Injector$1(args.stores, {
-        parent: parentInjector,
-        name: args.name
+    const initInjector = new Injector$1(props.stores, {
+        parent: (parentInjector === null || parentInjector === void 0 ? void 0 : parentInjector.value) || null,
+        oldInjector: null,
+        name: props.name
     });
-    instance[instanceInjectorKey] = injector;
+    const injector = ref(initInjector);
+    let oldInjector = initInjector;
+    const stopWatch = watch(() => {
+        return {
+            parent: (parentInjector === null || parentInjector === void 0 ? void 0 : parentInjector.value) || null,
+            stores: props.stores
+        };
+    }, ({ parent, stores }) => {
+        injector.value = new Injector$1(stores, {
+            parent,
+            oldInjector,
+            name: props.name
+        });
+        oldInjector = injector.value;
+    });
     provide(injectorKey, injector);
     onUnmounted(() => {
-        injector.dispose();
+        stopWatch();
+        injector.value.dispose();
     });
 };
 const useStore = (provide, opts) => {
-    const instance = getCurrentInstance();
-    const injector = instance[instanceInjectorKey] || inject(injectorKey, null);
+    const injector = inject(injectorKey, null);
     if (!injector) {
         if (!opts || !opts.optional) {
-            throw new Error(`Never register any injectorå!`);
+            throw new Error(`Never register any injector for ${provide.toString()}!`);
         }
         return null;
     }
-    return injector.get(provide, opts);
+    return computed(() => {
+        return injector.value.get(provide, opts);
+    });
 };
 
-export { Injector$1 as Injector, StoreProvider, injectorKey, instanceInjectorKey, provideStores, useStore };
+const getProvideArgs = (providers, name = '') => {
+    const injector = new Injector$1(providers, { name });
+    return [injectorKey, injector];
+};
+
+export { Injector$1 as Injector, StoreProvider, getProvideArgs, injectorKey, useProvideStores, useStore };

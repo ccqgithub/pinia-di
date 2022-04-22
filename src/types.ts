@@ -3,12 +3,11 @@ import { StoreDefinition } from 'pinia';
 export type StoreCreator = (ctx: InjectionContext) => StoreDefinition;
 export type StoreUse = StoreDefinition;
 
-export type InjectionProvide =
-  | StoreCreator
-  | {
-      creator: StoreCreator;
-      use?: StoreUse;
-    };
+export type InjectionProvideObj = {
+  creator: StoreCreator;
+  use?: StoreUse;
+};
+export type InjectionProvide = StoreCreator | InjectionProvideObj;
 
 export type InjectionValue<P extends StoreCreator> = ReturnType<P>;
 

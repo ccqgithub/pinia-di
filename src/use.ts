@@ -1,37 +1,54 @@
-import { provide, inject, getCurrentInstance, onUnmounted } from 'vue';
-import {
-  injectorKey,
-  instanceInjectorKey,
-  InstanceWithInjector
-} from './context';
+import { provide, inject, onUnmounted, ref, watch, computed } from 'vue';
+import { injectorKey } from './context';
 import { InjectionProvide, GetStore } from './types';
 import Injector from './injector';
 
-export const provideStores = (args: {
+export const useProvideStores = (props: {
   stores: InjectionProvide[];
   name?: string;
 }) => {
-  const instance = getCurrentInstance() as InstanceWithInjector;
   const parentInjector = inject(injectorKey, null);
-  const injector = new Injector(args.stores, {
-    parent: parentInjector,
-    name: args.name
+  const initInjector = new Injector(props.stores, {
+    parent: parentInjector?.value || null,
+    oldInjector: null,
+    name: props.name
   });
-  instance[instanceInjectorKey] = injector;
+  const injector = ref<Injector>(initInjector);
+  let oldInjector: Injector = initInjector;
+
+  const stopWatch = watch(
+    () => {
+      return {
+        parent: parentInjector?.value || null,
+        stores: props.stores
+      };
+    },
+    ({ parent, stores }) => {
+      injector.value = new Injector(stores, {
+        parent,
+        oldInjector,
+        name: props.name
+      });
+      oldInjector = injector.value as Injector;
+    }
+  );
+
   provide(injectorKey, injector);
   onUnmounted(() => {
-    injector.dispose();
+    stopWatch();
+    injector.value.dispose();
   });
 };
 
 export const useStore: GetStore = (provide: any, opts: any) => {
-  const instance = getCurrentInstance() as InstanceWithInjector;
-  const injector = instance[instanceInjectorKey] || inject(injectorKey, null);
+  const injector = inject(injectorKey, null);
   if (!injector) {
     if (!opts || !opts.optional) {
-      throw new Error(`Never register any injectorå!`);
+      throw new Error(`Never register any injector for ${provide.toString()}!`);
     }
     return null;
   }
-  return injector.get(provide, opts);
+  return computed(() => {
+    return injector.value.get(provide, opts);
+  });
 };
