@@ -1,46 +1,47 @@
-import { provide, inject, onUnmounted, ref, watch, computed } from 'vue';
-import { injectorKey } from './context';
-import { InjectionProvide, GetStore } from './types';
+import { provide, inject, onUnmounted } from 'vue';
 import Injector from './injector';
+import { injectorKey } from './context';
+import {
+  InjectionProvide,
+  StoreCreator,
+  InjectionValue,
+  GetStore
+} from './types';
 
 export const useProvideStores = (props: {
   stores: InjectionProvide[];
   name?: string;
 }) => {
   const parentInjector = inject(injectorKey, null);
-  const initInjector = new Injector(props.stores, {
-    parent: parentInjector?.value || null,
+  const injector = new Injector(props.stores, {
+    parent: parentInjector,
     oldInjector: null,
     name: props.name
   });
-  const injector = ref<Injector>(initInjector);
-  let oldInjector: Injector = initInjector;
-
-  const stopWatch = watch(
-    () => {
-      return {
-        parent: parentInjector?.value || null,
-        stores: props.stores
-      };
-    },
-    ({ parent, stores }) => {
-      injector.value = new Injector(stores, {
-        parent,
-        oldInjector,
-        name: props.name
-      });
-      oldInjector = injector.value as Injector;
-    }
-  );
 
   provide(injectorKey, injector);
   onUnmounted(() => {
-    stopWatch();
-    injector.value.dispose();
+    injector.dispose();
   });
+
+  return {
+    getStore: (provide: any, opts: any) => {
+      return injector.get(provide, opts);
+    }
+  } as {
+    getStore: GetStore;
+  };
 };
 
-export const useStore: GetStore = (provide: any, opts: any) => {
+export function useStore<P extends StoreCreator>(
+  provide: P,
+  opts: { optional: true }
+): InjectionValue<P> | null;
+export function useStore<P extends StoreCreator>(
+  provide: P,
+  opts?: { optional?: false }
+): InjectionValue<P>;
+export function useStore(provide: any, opts: any) {
   const injector = inject(injectorKey, null);
   if (!injector) {
     if (!opts || !opts.optional) {
@@ -48,7 +49,5 @@ export const useStore: GetStore = (provide: any, opts: any) => {
     }
     return null;
   }
-  return computed(() => {
-    return injector.value.get(provide, opts);
-  });
-};
+  return injector.get(provide, opts);
+}

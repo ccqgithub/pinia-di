@@ -1,15 +1,6 @@
-import {
-  defineComponent,
-  provide,
-  inject,
-  PropType,
-  onUnmounted,
-  ref,
-  watch
-} from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { InjectionProvide } from './types';
-import Injector from './Injector';
-import { injectorKey } from './context';
+import { useProvideStores } from './use';
 
 const StoreProvider = defineComponent({
   props: {
@@ -17,36 +8,9 @@ const StoreProvider = defineComponent({
     name: { type: String, requred: false }
   },
   setup(props) {
-    const parentInjector = inject(injectorKey, null);
-    const initInjector = new Injector(props.stores, {
-      parent: parentInjector?.value || null,
-      oldInjector: null,
+    useProvideStores({
+      stores: props.stores,
       name: props.name
-    });
-    const injector = ref<Injector>(initInjector);
-    let oldInjector: Injector = initInjector;
-
-    const stopWatch = watch(
-      () => {
-        return {
-          parent: parentInjector?.value || null,
-          stores: props.stores
-        };
-      },
-      ({ parent, stores }) => {
-        injector.value = new Injector(stores, {
-          parent,
-          oldInjector,
-          name: props.name
-        });
-        oldInjector = injector.value as Injector;
-      }
-    );
-
-    provide(injectorKey, injector);
-    onUnmounted(() => {
-      stopWatch();
-      injector.value.dispose();
     });
   }
 });

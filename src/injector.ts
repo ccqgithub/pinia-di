@@ -1,14 +1,15 @@
 import {
-  InjectionProvide,
-  InjectionValue,
-  InjectionContext,
+  StoreUse,
   StoreCreator,
+  InjectionValue,
+  InjectionProvide,
+  InjectionContext,
   InjectionProvideObj
 } from './types';
 
 type ProviderRecord = {
   creator: StoreCreator;
-  use?: InjectionValue<any>;
+  use?: StoreUse;
   dispose?: () => void;
 };
 type ProviderRecords = Map<StoreCreator, ProviderRecord>;
@@ -116,7 +117,7 @@ export default class Injector {
       if (typeof record.use === 'undefined') {
         this._initRecord(record);
       }
-      store = (record.use as InjectionValue<P>) || null;
+      store = record?.use ? (record?.use() as InjectionValue<P>) : null;
     }
 
     if (!store && !args?.optional) {

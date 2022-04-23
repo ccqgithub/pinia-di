@@ -1,7 +1,14 @@
-import { InjectionProvide, GetStore } from './types';
+import { InjectionProvide, StoreCreator, InjectionValue, GetStore } from './types';
 export declare const useProvideStores: (props: {
     stores: InjectionProvide[];
     name?: string;
-}) => void;
-export declare const useStore: GetStore;
+}) => {
+    getStore: GetStore;
+};
+export declare function useStore<P extends StoreCreator>(provide: P, opts: {
+    optional: true;
+}): InjectionValue<P> | null;
+export declare function useStore<P extends StoreCreator>(provide: P, opts?: {
+    optional?: false;
+}): InjectionValue<P>;
 //# sourceMappingURL=use.d.ts.map

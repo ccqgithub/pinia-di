@@ -22,8 +22,9 @@ G --> H["ComponentChild\nInjectorH\nconst appStore = useStore(AppStore)();\ncons
 - `Store Tree`: `Store 树` 和 `组件树`类似，每个组件从`Store 树`中最近的注入器`Injector`中获取`Store`。
 - `Injector`: 注入器，`Store 树`中的一个节点，用来管理`Store`：提供`Store`和获取`Store`。
 - `StoreProvider`: 用来提供`Store`的组件，它提供的`Store`能被子组件使用。
-- `Store Use`: 以后简称`Sotre`，[defineStore](https://pinia.vuejs.org/core-concepts/#defining-a-store) 的返回值。
-- `Store Creator`: `Store`构造器，调用它后会返回一个`Store Use`.
+- `Store Use`: [defineStore](https://pinia.vuejs.org/core-concepts/#defining-a-store)的返回类型。
+- `Store`: 调用`Store Use`的返回类型，和[useStore()](https://pinia.vuejs.org/core-concepts/#using-the-store)的返回类型一样。
+- `Store Creator`: 一个返回`Store Use`的方法。
 - `InjectionContext`:`Store`构造器的上下文环境，具体下面会介绍。
 
 ## 创建一个`Store`构造器
@@ -55,7 +56,7 @@ export const AppStore = ({ getStore }: InjectionContext) => {
     actions: {
       test() {
         // OtherStore 必须已经被当前的注入器`current injector`或者父注入器`parent injector` 提供。
-        const otherStore = getStore(OtherStore)();
+        const otherStore = getStore(OtherStore);
         console.log(otherStore.xx);
       }
     }
@@ -98,12 +99,6 @@ export const TestStore = ({ onUnmounted }: InjectionContext) => {
 
 使用 `StoreProvider` 组件来提供`Sotre`。
 
-*** 注意: 最好创建一个变量来存储需要提供的`Sotre`(例如 `<StoreProvider :store="stores"`)，而不是使用行内表达式：`<StoreProvider :store=[appStore]>` ***
-
-因为 `props.sotres`改变的时候，`pinia-di` 会重新创建一个新的注入器，如果是行内表达式的话每次渲染都会重新创建一次。
-
-虽然`pinia-di`内部会有机制去保证还在使用的`Sotre`不会被销毁和重新创建，但是最好不要这样做，因为这也是一笔开销。
-
 > App.vue
 ```vue
 <script setup>
@@ -119,7 +114,24 @@ const stores = [AppStore];
 </template>
 ```
 
-你也可以在全局使用`app.privide`来给整个app提供`Sotre`。
+你也可以使用组合式API `useProvideStores` 来提供`Store`。
+
+```ts
+import { createApp } from 'vue';
+import { useProvideStores } from 'pinia-di';
+import { AppStore } from '@/stores/appStore';
+
+const app = createApp({
+  setup() {
+    const { getStore } = useProvideStores([AppStore], 'app');
+    cosnt otherStore = getStore(OtherStore);
+    //...
+  }
+});
+app.mount('#app');
+```
+
+当然，你也可以在全局使用`app.privide`来给整个app提供`Sotre`。
 
 `pinia-di` 提供了一个辅助方法 `getProvideArgs` 来做这件事。
 
@@ -142,7 +154,7 @@ app.mount('#app');
 import { useStore } from 'pinia-di';
 import { AppStore } from '@/stores/appStore';
 
-const appStore = useStore(AppStore)();
+const appStore = useStore(AppStore);
 </script>
 ```
 
@@ -163,7 +175,7 @@ export const MessageStore = (/* no `ctx: InjectionContext` */) => {
 export const useMessageStore = MessageStore();
 ```
 
-然后，如果你想获取`MessageStore`的单例`Sotre`：`useMessageStore`，你需要在提供`Sotre`的时候使用`use`标志。
+然后，如果你想获取`MessageStore`的单例`Sotre`：`useMessageStore()`，你需要在提供`Sotre`的时候使用`use`标志。
 
 > App.vue
 ```vue
@@ -184,7 +196,7 @@ const stores = [
 </template>
 ```
 
-当自组件通过`MessageStore`获取`Sotre`时, 它们将得到以前就创建的`useMessageStore`，而不是重新创建一个。
+当自组件通过`MessageStore`获取`Sotre`时, 它们将得到以前就创建的`useMessageStore()`，而不是重新创建一个。
 
 > Component.vue
 ```vue
@@ -193,7 +205,7 @@ import { useStore } from 'pinia-di';
 import { MessageStore } from '@/stores/messageStore';
 
 // messageStore === useMessageStore(): true
-const messageStore = useStore(MessageStore)();
+const messageStore = useStore(MessageStore);
 </script>
 ```
 
@@ -294,6 +306,6 @@ import { useStore } from 'pinia-di';
 import { TestStore } from '@/stores/testStore';
 
 // will get the store provided by ParentB
-const testStore = useStore(TestStore)();
+const testStore = useStore(TestStore);
 </script>
 ```

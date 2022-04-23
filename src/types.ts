@@ -9,7 +9,7 @@ export type InjectionProvideObj = {
 };
 export type InjectionProvide = StoreCreator | InjectionProvideObj;
 
-export type InjectionValue<P extends StoreCreator> = ReturnType<P>;
+export type InjectionValue<P extends StoreCreator> = ReturnType<ReturnType<P>>;
 
 export type InjectionContext = {
   getStore: GetStore;

@@ -1,4 +1,4 @@
-import { InjectionProvide, InjectionValue, StoreCreator } from './types';
+import { StoreCreator, InjectionValue, InjectionProvide } from './types';
 export default class Injector {
     id: string;
     name: string;
@@ -19,4 +19,4 @@ export default class Injector {
     private _initRecord;
     dispose(): void;
 }
-//# sourceMappingURL=Injector.d.ts.map
+//# sourceMappingURL=injector.d.ts.map

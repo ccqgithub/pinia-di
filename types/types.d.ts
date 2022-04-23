@@ -6,7 +6,7 @@ export declare type InjectionProvideObj = {
     use?: StoreUse;
 };
 export declare type InjectionProvide = StoreCreator | InjectionProvideObj;
-export declare type InjectionValue<P extends StoreCreator> = ReturnType<P>;
+export declare type InjectionValue<P extends StoreCreator> = ReturnType<ReturnType<P>>;
 export declare type InjectionContext = {
     getStore: GetStore;
     onUnmounted: (fn: () => void) => void;
