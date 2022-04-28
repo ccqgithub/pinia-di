@@ -79,7 +79,11 @@ export default class Injector {
       }
 
       if (!record) {
-        throw new Error(`Error provider onfig [${provider.toString()}]!`);
+        throw new Error(
+          `Error provider onfig [${
+            (provider as any).$id || provider.toString()
+          }]!`
+        );
       }
 
       this.records.set(record.creator, record);
@@ -122,7 +126,9 @@ export default class Injector {
 
     if (!store && !args?.optional) {
       throw new Error(
-        `Store<${provide.toString()}> not be provided, and not optional!`
+        `Store<${
+          (provide as any).$id || provide.toString()
+        }> not be provided, and not optional!`
       );
     }
 

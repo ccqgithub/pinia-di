@@ -45,7 +45,11 @@ export function useStore(provide: any, opts: any) {
   const injector = inject(injectorKey, null);
   if (!injector) {
     if (!opts || !opts.optional) {
-      throw new Error(`Never register any injector for ${provide.toString()}!`);
+      throw new Error(
+        `Never register any injector for ${
+          (provide as any).$id || provide.toString()
+        }!`
+      );
     }
     return null;
   }

@@ -55,7 +55,7 @@ class Injector {
                 };
             }
             if (!record) {
-                throw new Error(`Error provider onfig [${provider.toString()}]!`);
+                throw new Error(`Error provider onfig [${provider.$id || provider.toString()}]!`);
             }
             this.records.set(record.creator, record);
         });
@@ -87,7 +87,7 @@ class Injector {
             store = (record === null || record === void 0 ? void 0 : record.use) ? record === null || record === void 0 ? void 0 : record.use() : null;
         }
         if (!store && !(args === null || args === void 0 ? void 0 : args.optional)) {
-            throw new Error(`Store<${provide.toString()}> not be provided, and not optional!`);
+            throw new Error(`Store<${provide.$id || provide.toString()}> not be provided, and not optional!`);
         }
         return store;
     }
@@ -141,7 +141,7 @@ function useStore(provide, opts) {
     const injector = vue.inject(injectorKey, null);
     if (!injector) {
         if (!opts || !opts.optional) {
-            throw new Error(`Never register any injector for ${provide.toString()}!`);
+            throw new Error(`Never register any injector for ${provide.$id || provide.toString()}!`);
         }
         return null;
     }
