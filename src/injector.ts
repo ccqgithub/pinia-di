@@ -121,7 +121,9 @@ export default class Injector {
     }
 
     if (!store && !args?.optional) {
-      throw new Error(`Store not be provided, and not optional!`);
+      throw new Error(
+        `Store<${provide.toString()}> not be provided, and not optional!`
+      );
     }
 
     return store;

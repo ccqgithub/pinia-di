@@ -87,7 +87,7 @@ class Injector {
             store = (record === null || record === void 0 ? void 0 : record.use) ? record === null || record === void 0 ? void 0 : record.use() : null;
         }
         if (!store && !(args === null || args === void 0 ? void 0 : args.optional)) {
-            throw new Error(`Store not be provided, and not optional!`);
+            throw new Error(`Store<${provide.toString()}> not be provided, and not optional!`);
         }
         return store;
     }
