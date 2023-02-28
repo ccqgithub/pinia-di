@@ -3,14 +3,15 @@ import {
   StoreCreator,
   InjectionValue,
   InjectionProvide,
-  InjectionContext,
-  InjectionProvideObj
+  InjectionContext
 } from './types';
+import { getActivePinia } from 'pinia';
 
 type ProviderRecord = {
   creator: StoreCreator;
   use?: StoreUse;
-  dispose?: () => void;
+  disposes: ((created: boolean) => void | Promise<void>)[];
+  disposeOnUnmounted: boolean;
 };
 type ProviderRecords = Map<StoreCreator, ProviderRecord>;
 
@@ -22,8 +23,6 @@ export default class Injector {
   id = '';
   // injector nme
   name = '';
-  // configs
-  private providers: InjectionProvide[] = [];
   // parent injector
   private parent: Injector | null = null;
   // 当前 injector 上的服务记录
@@ -33,48 +32,31 @@ export default class Injector {
     providers: InjectionProvide[],
     opts: {
       parent?: Injector | null;
-      oldInjector?: Injector | null;
       name?: string;
     } = {}
   ) {
-    const { parent = null, oldInjector = null, name = '' } = opts;
+    const { parent = null, name = '' } = opts;
 
     this.id = `${injectorId++}`;
     this.name = name;
     this.parent = parent;
 
-    const oldProviders = oldInjector?.providers || [];
-    const oldUsedKeys: StoreCreator[] = [];
     // provider records
     providers.forEach((provider) => {
-      const key = typeof provider === 'object' ? provider.creator : provider;
-      const oldProvider = oldProviders.find((item) => {
-        return item === key || (item as InjectionProvideObj).creator === key;
-      });
-      // has old
-      if (oldProvider) {
-        const oP: InjectionProvideObj =
-          typeof oldProvider === 'object'
-            ? oldProvider
-            : { creator: oldProvider };
-        const p: InjectionProvideObj =
-          typeof provider === 'object' ? provider : { creator: provider };
-        // if the old config of store not change, remain use it
-        if (p.creator === oP.creator && p.use === oP.use) {
-          oldUsedKeys.push(p.creator);
-          this.records.set(p.creator, oldInjector!.records.get(p.creator)!);
-          return;
-        }
-      }
-
       let record: ProviderRecord | null = null;
       if (typeof provider === 'object') {
-        record = { ...provider };
+        record = {
+          ...provider,
+          disposes: [],
+          disposeOnUnmounted: provider.disposeOnUnmounted !== false
+        };
       } else if (typeof provider === 'function') {
         // [class]
         const p = provider as StoreCreator;
         record = {
-          creator: p
+          creator: p,
+          disposes: [],
+          disposeOnUnmounted: true
         };
       }
 
@@ -88,17 +70,6 @@ export default class Injector {
 
       this.records.set(record.creator, record);
     });
-
-    // dispose old instance
-    oldProviders.forEach((v) => {
-      const key = typeof v === 'object' ? v.creator : v;
-      if (oldUsedKeys.includes(key)) return;
-      const record = oldInjector?.records.get(key);
-      record?.dispose?.();
-    });
-
-    // set providers conf to adjust change
-    this.providers = providers;
   }
 
   get<P extends StoreCreator>(
@@ -140,8 +111,15 @@ export default class Injector {
       getStore: (provide: StoreCreator, opts: any) => {
         return this.get(provide, opts);
       },
-      onUnmounted: (fn: () => void) => {
-        record.dispose = fn;
+      onUnmounted: (fn: (created: boolean) => void | Promise<void>) => {
+        record.disposes.push(fn);
+        const remove = () => {
+          const i = record.disposes.indexOf(fn);
+          if (i !== -1) {
+            record.disposes.splice(i, 1);
+          }
+        };
+        return remove;
       },
       useStoreId: (id: string) => {
         return this.name
@@ -153,12 +131,28 @@ export default class Injector {
     record.use = record.creator(ctx);
   }
 
-  dispose() {
+  async dispose() {
     const { records } = this;
     const keys = records.keys();
+
     for (const key of keys) {
-      const dispose = records.get(key)?.dispose;
-      dispose && dispose();
+      const record = records.get(key);
+      if (!record || !record.use) return;
+
+      const activePinia = getActivePinia();
+      if (!activePinia) return;
+
+      // store created
+      const hasCreated = activePinia._s.has(record.use.$id);
+
+      const disposes = record?.disposes || [];
+      for (const dispose of disposes) {
+        await dispose(hasCreated);
+      }
+
+      if (!hasCreated) return;
+
+      record.use().$dispose();
     }
   }
 }

@@ -1,4 +1,51 @@
-import { inject, provide, onUnmounted, defineComponent } from 'vue';
+import { getCurrentInstance, inject, provide, onUnmounted, defineComponent } from 'vue';
+import { getActivePinia } from 'pinia';
+
+/*! *****************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+function __awaiter(thisArg, _arguments, P, generator) {
+  function adopt(value) {
+    return value instanceof P ? value : new P(function (resolve) {
+      resolve(value);
+    });
+  }
+
+  return new (P || (P = Promise))(function (resolve, reject) {
+    function fulfilled(value) {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+
+    function rejected(value) {
+      try {
+        step(generator["throw"](value));
+      } catch (e) {
+        reject(e);
+      }
+    }
+
+    function step(result) {
+      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+    }
+
+    step((generator = generator.apply(thisArg, _arguments || [])).next());
+  });
+}
 
 let injectorId = 0;
 // service injector
@@ -8,46 +55,27 @@ class Injector {
         this.id = '';
         // injector nme
         this.name = '';
-        // configs
-        this.providers = [];
         // parent injector
         this.parent = null;
         // 当前 injector 上的服务记录
         this.records = new Map();
-        const { parent = null, oldInjector = null, name = '' } = opts;
+        const { parent = null, name = '' } = opts;
         this.id = `${injectorId++}`;
         this.name = name;
         this.parent = parent;
-        const oldProviders = (oldInjector === null || oldInjector === void 0 ? void 0 : oldInjector.providers) || [];
-        const oldUsedKeys = [];
         // provider records
         providers.forEach((provider) => {
-            const key = typeof provider === 'object' ? provider.creator : provider;
-            const oldProvider = oldProviders.find((item) => {
-                return item === key || item.creator === key;
-            });
-            // has old
-            if (oldProvider) {
-                const oP = typeof oldProvider === 'object'
-                    ? oldProvider
-                    : { creator: oldProvider };
-                const p = typeof provider === 'object' ? provider : { creator: provider };
-                // if the old config of store not change, remain use it
-                if (p.creator === oP.creator && p.use === oP.use) {
-                    oldUsedKeys.push(p.creator);
-                    this.records.set(p.creator, oldInjector.records.get(p.creator));
-                    return;
-                }
-            }
             let record = null;
             if (typeof provider === 'object') {
-                record = Object.assign({}, provider);
+                record = Object.assign(Object.assign({}, provider), { disposes: [], disposeOnUnmounted: provider.disposeOnUnmounted !== false });
             }
             else if (typeof provider === 'function') {
                 // [class]
                 const p = provider;
                 record = {
-                    creator: p
+                    creator: p,
+                    disposes: [],
+                    disposeOnUnmounted: true
                 };
             }
             if (!record) {
@@ -55,17 +83,6 @@ class Injector {
             }
             this.records.set(record.creator, record);
         });
-        // dispose old instance
-        oldProviders.forEach((v) => {
-            var _a;
-            const key = typeof v === 'object' ? v.creator : v;
-            if (oldUsedKeys.includes(key))
-                return;
-            const record = oldInjector === null || oldInjector === void 0 ? void 0 : oldInjector.records.get(key);
-            (_a = record === null || record === void 0 ? void 0 : record.dispose) === null || _a === void 0 ? void 0 : _a.call(record);
-        });
-        // set providers conf to adjust change
-        this.providers = providers;
     }
     get(provide, args) {
         const record = this.records.get(provide);
@@ -93,7 +110,14 @@ class Injector {
                 return this.get(provide, opts);
             },
             onUnmounted: (fn) => {
-                record.dispose = fn;
+                record.disposes.push(fn);
+                const remove = () => {
+                    const i = record.disposes.indexOf(fn);
+                    if (i !== -1) {
+                        record.disposes.splice(i, 1);
+                    }
+                };
+                return remove;
             },
             useStoreId: (id) => {
                 return this.name
@@ -104,25 +128,42 @@ class Injector {
         record.use = record.creator(ctx);
     }
     dispose() {
-        var _a;
-        const { records } = this;
-        const keys = records.keys();
-        for (const key of keys) {
-            const dispose = (_a = records.get(key)) === null || _a === void 0 ? void 0 : _a.dispose;
-            dispose && dispose();
-        }
+        return __awaiter(this, void 0, void 0, function* () {
+            const { records } = this;
+            const keys = records.keys();
+            for (const key of keys) {
+                const record = records.get(key);
+                if (!record || !record.use)
+                    return;
+                const activePinia = getActivePinia();
+                if (!activePinia)
+                    return;
+                // store created
+                const hasCreated = activePinia._s.has(record.use.$id);
+                const disposes = (record === null || record === void 0 ? void 0 : record.disposes) || [];
+                for (const dispose of disposes) {
+                    yield dispose(hasCreated);
+                }
+                if (!hasCreated)
+                    return;
+                record.use().$dispose();
+            }
+        });
     }
 }
 
 const injectorKey = Symbol('Injector Key');
 
 const useProvideStores = (props) => {
+    const instance = getCurrentInstance();
     const parentInjector = inject(injectorKey, null);
     const injector = new Injector(props.stores, {
         parent: parentInjector,
-        oldInjector: null,
         name: props.name
     });
+    if (instance) {
+        instance.__PINIA_DI_INJECTOR__ = injector;
+    }
     provide(injectorKey, injector);
     onUnmounted(() => {
         injector.dispose();
@@ -134,7 +175,10 @@ const useProvideStores = (props) => {
     };
 };
 function useStore(provide, opts) {
-    const injector = inject(injectorKey, null);
+    var _a;
+    const instance = getCurrentInstance();
+    const ctxInjector = inject(injectorKey, null);
+    const injector = ((_a = instance) === null || _a === void 0 ? void 0 : _a.__PINIA_DI_INJECTOR__) || ctxInjector;
     if (!injector) {
         if (!opts || !opts.optional) {
             throw new Error(`Never register any injector for ${provide.$id || provide.toString()}!`);

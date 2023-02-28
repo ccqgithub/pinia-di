@@ -6,6 +6,7 @@ export type StoreUse = StoreDefinition;
 export type InjectionProvideObj = {
   creator: StoreCreator;
   use?: StoreUse;
+  disposeOnUnmounted?: boolean;
 };
 export type InjectionProvide = StoreCreator | InjectionProvideObj;
 
@@ -13,7 +14,7 @@ export type InjectionValue<P extends StoreCreator> = ReturnType<ReturnType<P>>;
 
 export type InjectionContext = {
   getStore: GetStore;
-  onUnmounted: (fn: () => void) => void;
+  onUnmounted: (fn: (created: boolean) => void) => void;
   useStoreId: (id: string) => string;
 };
 

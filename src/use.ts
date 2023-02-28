@@ -1,4 +1,4 @@
-import { provide, inject, onUnmounted } from 'vue';
+import { provide, inject, onUnmounted, getCurrentInstance } from 'vue';
 import Injector from './injector';
 import { injectorKey } from './context';
 import {
@@ -12,14 +12,18 @@ export const useProvideStores = (props: {
   stores: InjectionProvide[];
   name?: string;
 }) => {
+  const instance = getCurrentInstance();
   const parentInjector = inject(injectorKey, null);
   const injector = new Injector(props.stores, {
     parent: parentInjector,
-    oldInjector: null,
     name: props.name
   });
 
+  if (instance) {
+    (instance as any)!.__PINIA_DI_INJECTOR__ = injector;
+  }
   provide(injectorKey, injector);
+
   onUnmounted(() => {
     injector.dispose();
   });
@@ -42,7 +46,10 @@ export function useStore<P extends StoreCreator>(
   opts?: { optional?: false }
 ): InjectionValue<P>;
 export function useStore(provide: any, opts: any) {
-  const injector = inject(injectorKey, null);
+  const instance = getCurrentInstance();
+  const ctxInjector = inject(injectorKey, null);
+  const injector = (instance as any)?.__PINIA_DI_INJECTOR__ || ctxInjector;
+
   if (!injector) {
     if (!opts || !opts.optional) {
       throw new Error(

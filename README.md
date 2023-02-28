@@ -1,10 +1,10 @@
-# pinia-di: Use [Pinia](https://github.com/vuejs/pinia) more flexibly!
+# pinia-di: 更灵活地使用 [Pinia](https://github.com/vuejs/pinia)!
+
+> :fire: :fire: *更好地重用 stores*.
 
 DI(dependency-injection) for pinia. work with vue@3
 
-[中文文档](./docs/zh-CN.md)
-
-## Flow Chart
+## 流程图
 
 ```mermaid
 flowchart TD
@@ -17,29 +17,38 @@ E --> G{{"StoreProvider[ChildStore]\nInjectorG"}}
 G --> H["ComponentChild\nInjectorH\nconst appStore = useStore(AppStore)();\nconst childStore = useStore(ChildStore)();"]
 ```
 
-## Core Concepts
+## 核心概念
 
-- `Store Tree`: The `store tree` is like the `component tree`, each component get the store form the latest `Injector`.
-- `Injector`: The `store tree node` that used to management stores (e.g. provide stores, and get stores).
-- `StoreProvider`: A component that use `Injector` to provide stores for child components.
-- `Store Use`: The return type of [defineStore](https://pinia.vuejs.org/core-concepts/#defining-a-store).
-- `Store`: The return type by call the `Store Use` like [useStore()](https://pinia.vuejs.org/core-concepts/#using-the-store);
-- `Store Creator`: A function that return a `Store Use`.
-- `InjectionContext`: The parameter that the `Store Creator` will receive.
+- `Injector`: 在组件树中给当前组件和子孙组件注入和提供 stores。
+- `Store Tree`: `store tree` 和 `component tree`类似, 每个组件从最近的 `Injector` 获取 store。
+- `StoreProvider`: 一个辅助组件，使用 `Injector` 来提供 stores。
+- `Store Use`: [defineStore](https://pinia.vuejs.org/core-concepts/#defining-a-store) 的返回类型。
+- `Store`: `Store Use` 的返回值，和 [useStore()](https://pinia.vuejs.org/core-concepts/#using-the-store) 一样。
+- `Store Creator`: 一个函数，返回 `Store Use`.
+- `InjectionContext`: `Store Creator` 会接收到的参数。
 
-## Define Store Creator
+## 定义 Store Creator
 
-A `Store Creator` is a creator function that return the `defineStore`, like the creator `AppStore`:
+`Store Creator` 是一个能返回 `defineStore` 的函数。
+
+例如: `AppStore` 是 `Store Creator`,  `AppStore()` 的返回值是 `Sotre Use`:
 
 ```ts
 import { defineStore } from 'pinia';
 import { InjectionContext } from 'pinia-di';
 
+// Store Creator
 export const AppStore = (ctx: InjectionContext) => {
   return defineStore(ctx.useStoreId('App'), {
     //...
   });
 }
+
+// Store Use
+const useAppStore = AppStore();
+
+// Store
+const appStore = useAppStore();
 ```
 
 ## InjectionContext: `{ getStore, useStoreId, onUnmounted }`
@@ -50,28 +59,32 @@ import { InjectionContext } from 'pinia-di';
 import { OtherStore } from './stores/other';
 
 export const AppStore = ({ getStore }: InjectionContext) => {
-  return defineStore('app', {
-    state: () => {
-      return {};
-    },
-    actions: {
-      test() {
-        // the OtherStore must be provided by `current injector` or  `parent injector`
+  return defineStore('app', () => {
+    const state = reactive({});
+    const test = () => {
+      // the OtherStore must be provided by `current injector` or  `parent injector`
         const otherStore = getStore(OtherStore);
         console.log(otherStore.xx);
-      }
+    };
+    
+    return {
+      state,
+      test
     }
   });
 }
 ```
 
-`useStoreId`: Because `pinia` use `id` to identify one store, but our `Store Creator` maybe use multiple times, so we need a method `useStoreId` to generate the unique id.
+`useStoreId`: Because `pinia` use `id` to identify one store, but our `Store Creator` is reusable, so we need a method `useStoreId` to generate the unique id.
 ```ts
 import { InjectionContext } from 'pinia-di';
 export const TestStore = ({ useStoreId }: InjectionContext) => {
-  return defineStore(useStoreId('test'), {
-    state: () => {
-      return {};
+  // store id will be `test-1`, `test-2`, ...
+  return defineStore(useStoreId('test'), () => {
+    const state = reactive({});
+    
+    return {
+      state
     }
   });
 }
@@ -81,19 +94,19 @@ export const TestStore = ({ useStoreId }: InjectionContext) => {
 ```ts
 import { InjectionContext } from 'pinia-di';
 export const TestStore = ({ onUnmounted }: InjectionContext) => {
-  const useTestStore = defineStore(useStoreId('test'), {
-    state: () => {
-      return {};
-    },
-    actions: {
-      dispose() {
-        console.log('dispose');
-      }
-    }
-  });
+  const useTestStore = defineStore(useStoreId('test'), () => {
+    const state = reactive({});
+    const dispose = async (isCreated) => {
+      console.log('dispose');
+    };
 
-  onUnmounted(() => {
-    useTestStore().dispose();
+    const remove = onUnmounted(dispose);
+    // you can aslo remove the callback by
+    // remove()
+
+    return {
+      state
+    }
   });
 
   return useTestStore;
@@ -102,37 +115,48 @@ export const TestStore = ({ onUnmounted }: InjectionContext) => {
 
 ## Provide Stores
 
+You can use composition api `useProvideStores` to provide stores.
+
+```ts
+import { createApp } from 'vue';
+import { useProvideStores, useStore } from 'pinia-di';
+import { AppStore } from '@/stores/appStore';
+
+const app = createApp({
+  setup() {
+    // 'app' is the injector name that help to debug
+    useProvideStores([AppStore], 'app');
+    const appStore = useStore(AppStore);
+    cosnt otherStore = useStore(OtherStore);
+    //...
+  }
+});
+app.mount('#app');
+```
+
 Use `StoreProvider` to provide stores.
+
+> ::fire:: Tip: It is recommended to define stores in the `script`, not in the `props`.
+
+> ::fire:: Tip: Because the stores prop only use once, if changes after component mounted, the new stores prop will be ignored. 
+
+> ::fire:: If you want to conditionally provide diffrent stores, you need to write diffrent components to provide each self.
 
 > App.vue
 ```vue
 <script setup>
 import { StoreProvider } from 'pinia-di';
 import { AppStore } from '@/stores/appStore';
+
+const stores = [AppStore];
 </script>
 
 <template>
-  <StoreProvider :stores="[AppStore]" name="app">
+  <!-- // 'app' is the injector name that help to debug -->
+  <StoreProvider :stores="stores" name="app">
     <Main />
   </StoreProvider>
 </template>
-```
-
-You can also use composition api `useProvideStores` to provide stores.
-
-```ts
-import { createApp } from 'vue';
-import { useProvideStores } from 'pinia-di';
-import { AppStore } from '@/stores/appStore';
-
-const app = createApp({
-  setup() {
-    const { getStore } = useProvideStores([AppStore], 'app');
-    cosnt otherStore = getStore(OtherStore);
-    //...
-  }
-});
-app.mount('#app');
 ```
 
 And, you can provide stores in the `app.privide` for whole app.
@@ -145,6 +169,7 @@ import { getProvideArgs } from 'pinia-di';
 import { AppStore } from '@/stores/appStore';
 
 const app = createApp();
+// 'app' is the injector name that help to debug
 app.provide(...getProvideArgs([getProvideArgs], 'app'));
 
 app.mount('#app');
@@ -221,14 +246,17 @@ import { defineStore } from 'pinia';
 import { useStoreId } from 'pinia-di';
 
 export const UserStore = ({ getStore, useStoreId }: InjectionContext) => {
-  return defineStore(useStoreId('user'), {
-    state: {},
-    actions: {
-      test: () => {
-        // get other store that parent component or self provided
+  return defineStore(useStoreId('user'), () => {
+    const state = reactive({});
+    const test = () => {
+      // get other store that parent component or self provided
         const appStore = getStore(AppStore);
         console.log(appStore.xxx);
-      }
+    };
+    
+    return {
+      state,
+      test
     }
   });
 }
@@ -242,20 +270,18 @@ import { defineStore } from 'pinia';
 
 export const AppStore = ({ onUnmounted, useStoreId }: InjectionContext) => {
   // define store, useStoreId('main') generate the unique id for per `Store Instance`
-  const useMainstore = defineStore(useStoreId('main'), {
-    state: {},
-    actions: {
-      dispose: () => {
-        //
-      }
-    }
-  });
+  return defineStore(useStoreId('main'), () => {
+    const state = reactive({});
+    const dispose = async () => {
+      // console.log('dispose')
+    };
 
-  onUnmounted(() => {
-    useMainstore().dispose();
-  });
+    onUnmounted(dispose);
 
-  return useMainstore;
+    return {
+      state
+    };
+  });
 }
 ```
 
@@ -311,5 +337,22 @@ import { TestStore } from '@/stores/testStore';
 
 // will get the store provided by ParentB
 const testStore = useStore(TestStore);
+</script>
+```
+
+## disposeOnUnmounted
+
+`pinia-di` will call `store.$dispose()` when then inject component unmounted.
+
+If do not want the, you can use `disposeOnUnmounted` to disable it.
+
+```vue
+<script setup>
+import { provideStores } from 'pinia-di';
+import { TestStore } from '@/stores/testStore';
+
+const stores = [
+  { creator: TestStore, disposeOnUnmounted: false }
+];
 </script>
 ```
