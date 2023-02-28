@@ -119,22 +119,21 @@ You can use composition api `useProvideStores` or component `StoreProvider` to p
 
 ### `useProvideStores`
 
-```ts
+```vue
+<script lang="ts" setup>
 import { createApp } from 'vue';
 import { useProvideStores, useStore } from 'pinia-di';
-import { AppStore } from '@/stores/appStore';
+import { TestStore } from '@/stores/testStore';
 
-const app = createApp({
-  setup() {
-    // 'app' is the injector name that help to debug
-    useProvideStores([AppStore], 'app');
-    // after useProvideStores, you can use useStore to get the provided stores
-    const appStore = useStore(AppStore);
-    cosnt otherStore = useStore(OtherStore);
-    //...
-  }
-});
-app.mount('#app');
+// the testStore is provided by parent injector
+const testStore = useStore(TestStore);
+
+// 'test' is the injector name that help to debug
+useProvideStores([TestStore], 'test');
+
+// testStoreNew is provided by the `useProvideStores` above
+const testStoreNew = useStore(TestStore);
+</script>
 ```
 
 ### `StoreProvider`
@@ -151,13 +150,11 @@ Use `StoreProvider` to provide stores.
 import { StoreProvider } from 'pinia-di';
 import { AppStore } from '@/stores/appStore';
 import { TestStore } from '@/stores/testStore';
-
-const stores = [AppStore];
 </script>
 
 <template>
   <!-- // 'app' is the injector name that help to debug -->
-  <StoreProvider :stores="stores" name="app">
+  <StoreProvider :stores="[AppStore]" name="app">
     <Main />
 
     <div>
