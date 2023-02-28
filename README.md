@@ -1,10 +1,10 @@
-# pinia-di: 更灵活地使用 [Pinia](https://github.com/vuejs/pinia)!
+# pinia-di: Use [Pinia](https://github.com/vuejs/pinia) more flexibly!
 
-> :fire: :fire: *更好地重用 stores*.
+> :fire: :fire: *Better way to reuse stores*.
 
-DI(dependency-injection) for pinia. work with vue@3
+DI(dependency-injection) for pinia. work with vue@3.
 
-## 流程图
+## Flow Chart
 
 ```mermaid
 flowchart TD
@@ -17,21 +17,21 @@ E --> G{{"StoreProvider[ChildStore]\nInjectorG"}}
 G --> H["ComponentChild\nInjectorH\nconst appStore = useStore(AppStore)();\nconst childStore = useStore(ChildStore)();"]
 ```
 
-## 核心概念
+## Core Concepts
 
-- `Injector`: 在组件树中给当前组件和子孙组件注入和提供 stores。
-- `Store Tree`: `store tree` 和 `component tree`类似, 每个组件从最近的 `Injector` 获取 store。
-- `StoreProvider`: 一个辅助组件，使用 `Injector` 来提供 stores。
-- `Store Use`: [defineStore](https://pinia.vuejs.org/core-concepts/#defining-a-store) 的返回类型。
-- `Store`: `Store Use` 的返回值，和 [useStore()](https://pinia.vuejs.org/core-concepts/#using-the-store) 一样。
-- `Store Creator`: 一个函数，返回 `Store Use`.
-- `InjectionContext`: `Store Creator` 会接收到的参数。
+- `Injector`: Inject and provide stores in the component tree to current component or child components.
+- `Store Tree`: The `store tree` is like the `component tree`, each component get the store form the latest `Injector`.
+- `StoreProvider`: A component that use `Injector` to provide stores.
+- `Store Use`: The return type of [defineStore](https://pinia.vuejs.org/core-concepts/#defining-a-store).
+- `Store`: The return type by call the `Store Use` like [useStore()](https://pinia.vuejs.org/core-concepts/#using-the-store);
+- `Store Creator`: A function that return a `Store Use`.
+- `InjectionContext`: The parameter that the `Store Creator` will receive.
 
-## 定义 Store Creator
+## Define Store Creator
 
-`Store Creator` 是一个能返回 `defineStore` 的函数。
+A `Store Creator` is a creator function that return the `defineStore`.
 
-例如: `AppStore` 是 `Store Creator`,  `AppStore()` 的返回值是 `Sotre Use`:
+For example: the `AppStore` is a `Store Creator`, and the return of `AppStore()` is `Sotre Use`:
 
 ```ts
 import { defineStore } from 'pinia';
