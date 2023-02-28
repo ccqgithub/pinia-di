@@ -115,7 +115,9 @@ export const TestStore = ({ onUnmounted }: InjectionContext) => {
 
 ## Provide Stores
 
-You can use composition api `useProvideStores` to provide stores.
+You can use composition api `useProvideStores` or component `StoreProvider` to provide stores.
+
+> `useProvideStores`
 
 ```ts
 import { createApp } from 'vue';
@@ -134,19 +136,20 @@ const app = createApp({
 app.mount('#app');
 ```
 
+> StoreProvider
+
 Use `StoreProvider` to provide stores.
 
-> ::fire:: Tip: It is recommended to define stores in the `script`, not in the `props`.
+> :fire: Tip: Because the stores prop only use once, if changes after component mounted, the new stores prop will be ignored. 
 
-> ::fire:: Tip: Because the stores prop only use once, if changes after component mounted, the new stores prop will be ignored. 
-
-> ::fire:: If you want to conditionally provide diffrent stores, you need to write diffrent components to provide each self.
+> :fire: If you want to conditionally provide diffrent stores, you need to write diffrent components to provide each self.
 
 > App.vue
 ```vue
 <script setup>
 import { StoreProvider } from 'pinia-di';
 import { AppStore } from '@/stores/appStore';
+import { TestStore } from '@/stores/testStore';
 
 const stores = [AppStore];
 </script>
@@ -155,6 +158,16 @@ const stores = [AppStore];
   <!-- // 'app' is the injector name that help to debug -->
   <StoreProvider :stores="stores" name="app">
     <Main />
+
+    <div>
+      <StoreProvider :stores="[TestStore]">
+        <div>test a</div>
+      </StoreProvider>
+      
+      <StoreProvider :stores="[TestStore]">
+        <div>test n</div>
+      </StoreProvider>
+    </div>
   </StoreProvider>
 </template>
 ```
