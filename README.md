@@ -117,7 +117,7 @@ export const TestStore = ({ onUnmounted }: InjectionContext) => {
 
 You can use composition api `useProvideStores` or component `StoreProvider` to provide stores.
 
-> `useProvideStores`
+### `useProvideStores`
 
 ```ts
 import { createApp } from 'vue';
@@ -128,6 +128,7 @@ const app = createApp({
   setup() {
     // 'app' is the injector name that help to debug
     useProvideStores([AppStore], 'app');
+    // after useProvideStores, you can use useStore to get the provided stores
     const appStore = useStore(AppStore);
     cosnt otherStore = useStore(OtherStore);
     //...
@@ -136,7 +137,7 @@ const app = createApp({
 app.mount('#app');
 ```
 
-> StoreProvider
+### `StoreProvider`
 
 Use `StoreProvider` to provide stores.
 
