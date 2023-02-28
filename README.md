@@ -20,7 +20,7 @@ G --> H["ComponentChild\nInjectorH\nconst appStore = useStore(AppStore)();\ncons
 ## Core Concepts
 
 - `Injector`: Inject and provide stores in the component tree to current component or child components.
-- `Store Tree`: The `store tree` is like the `component tree`, each component get the store form the latest `Injector`.
+- `Store Tree`: The `store tree` is like the `component tree`, each component get the store form the nearest `Injector`.
 - `StoreProvider`: A component that use `Injector` to provide stores.
 - `Store Use`: The return type of [defineStore](https://pinia.vuejs.org/core-concepts/#defining-a-store).
 - `Store`: The return type by call the `Store Use` like [useStore()](https://pinia.vuejs.org/core-concepts/#using-the-store);
