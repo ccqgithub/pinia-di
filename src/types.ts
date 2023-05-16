@@ -1,6 +1,8 @@
 import { StoreDefinition } from 'pinia';
 
-export type StoreCreator = (ctx: InjectionContext) => StoreDefinition;
+export type StoreCreator = (
+  ctx: InjectionContext
+) => StoreDefinition<string, any, any, any>;
 export type StoreUse = StoreDefinition;
 
 export type InjectionProvideObj = {
@@ -14,7 +16,7 @@ export type InjectionValue<P extends StoreCreator> = ReturnType<ReturnType<P>>;
 
 export type InjectionContext = {
   getStore: GetStore;
-  onUnmounted: (fn: (created: boolean) => void) => void;
+  onUnmounted: (fn: () => void) => void;
   useStoreId: (id: string) => string;
 };
 

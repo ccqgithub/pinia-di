@@ -1,10 +1,13 @@
 import path from 'path';
-import babel from '@rollup/plugin-babel';
+import { createRequire } from 'node:module';
+import { babel } from '@rollup/plugin-babel';
 import replace from '@rollup/plugin-replace';
-import { terser } from 'rollup-plugin-terser';
+import terser from '@rollup/plugin-terser';
 import commonjs from '@rollup/plugin-commonjs';
 import typescript from 'rollup-plugin-typescript2';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
+
+const require = createRequire(import.meta.url);
 
 const resolve = (p) => path.resolve(process.cwd(), p);
 const pkg = require(resolve(`package.json`));

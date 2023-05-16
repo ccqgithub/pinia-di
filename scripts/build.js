@@ -1,16 +1,20 @@
-const path = require('path');
-const chalk = require('chalk').default;
-const execa = require('execa');
-const fs = require('fs-extra');
-const minimist = require('minimist');
-const { gzipSync } = require('zlib');
-const { compress } = require('brotli');
+import path, { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import chalk from 'chalk';
+import { execa, execaSync } from 'execa';
+import fs from 'fs-extra';
+import minimist from 'minimist';
+import { gzipSync } from 'zlib';
+import { compress } from 'brotli';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const args = minimist(process.argv.slice(2));
 const formats = args.formats || args.f;
 const buildTypes = args.types || args.t;
 const sourceMap = args.sourcemap || args.s;
-const commit = execa.sync('git', ['rev-parse', 'HEAD']).stdout.slice(0, 7);
+const commit = execaSync('git', ['rev-parse', 'HEAD']).stdout.slice(0, 7);
 
 (async () => {
   await build();

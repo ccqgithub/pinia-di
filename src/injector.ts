@@ -10,7 +10,7 @@ import { getActivePinia } from 'pinia';
 type ProviderRecord = {
   creator: StoreCreator;
   use?: StoreUse;
-  disposes: ((created: boolean) => void | Promise<void>)[];
+  disposes: (() => void | Promise<void>)[];
   disposeOnUnmounted: boolean;
 };
 type ProviderRecords = Map<StoreCreator, ProviderRecord>;
@@ -111,7 +111,7 @@ export default class Injector {
       getStore: (provide: StoreCreator, opts: any) => {
         return this.get(provide, opts);
       },
-      onUnmounted: (fn: (created: boolean) => void | Promise<void>) => {
+      onUnmounted: (fn: () => void | Promise<void>) => {
         record.disposes.push(fn);
         const remove = () => {
           const i = record.disposes.indexOf(fn);
@@ -143,14 +143,13 @@ export default class Injector {
       if (!activePinia) return;
 
       // store created
-      const hasCreated = activePinia._s.has(record.use.$id);
+      const hasCreated = (activePinia as any)._s.has(record.use.$id);
+      if (!hasCreated) return;
 
       const disposes = record?.disposes || [];
       for (const dispose of disposes) {
-        await dispose(hasCreated);
+        await dispose();
       }
-
-      if (!hasCreated) return;
 
       record.use().$dispose();
     }

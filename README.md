@@ -96,7 +96,7 @@ import { InjectionContext } from 'pinia-di';
 export const TestStore = ({ onUnmounted }: InjectionContext) => {
   const useTestStore = defineStore(useStoreId('test'), () => {
     const state = reactive({});
-    const dispose = async (isCreated) => {
+    const dispose = async () => {
       console.log('dispose');
     };
 

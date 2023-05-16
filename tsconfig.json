@@ -19,7 +19,7 @@
     "removeComments": false,
     "jsx": "preserve",
     "lib": ["esnext", "dom"],
-    "types": ["jest", "puppeteer", "node"],
+    "types": ["jest", "node"],
     "rootDir": ".",
     "preserveSymlinks": true
   },

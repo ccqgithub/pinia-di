@@ -30,7 +30,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['*.js'],
+      files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
       // parser: '@babel/eslint-parser',
       plugins: ['import', 'prettier'],
       extends: [
