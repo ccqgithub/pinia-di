@@ -7,11 +7,13 @@ const StoreProvider = defineComponent({
     stores: { type: Object as PropType<InjectionProvide[]>, required: true },
     name: { type: String, requred: false }
   },
-  setup(props) {
+  setup(props, { slots }) {
     useProvideStores({
       stores: props.stores,
       name: props.name
     });
+
+    return () => slots.default?.() || null;
   }
 });
 

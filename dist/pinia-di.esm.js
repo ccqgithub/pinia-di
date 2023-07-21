@@ -178,11 +178,12 @@ const StoreProvider = defineComponent({
         stores: { type: Object, required: true },
         name: { type: String, requred: false }
     },
-    setup(props) {
+    setup(props, { slots }) {
         useProvideStores({
             stores: props.stores,
             name: props.name
         });
+        return () => { var _a; return ((_a = slots.default) === null || _a === void 0 ? void 0 : _a.call(slots)) || null; };
     }
 });
 

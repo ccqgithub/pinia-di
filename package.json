@@ -1,6 +1,6 @@
 {
   "name": "pinia-di",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "DI(dependency-injection) for pinia. work with vue@3",
   "main": "dist/pinia-di.js",
   "module": "dist/pinia-di.esm.js",
