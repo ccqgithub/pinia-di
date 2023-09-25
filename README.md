@@ -249,7 +249,7 @@ const messageStore = useStore(MessageStore);
 </script>
 ```
 
-## Get Other Stores In One Sotre
+## Get Other Stores In One Store
 
 > stores/userStore.ts
 ```ts
@@ -273,7 +273,7 @@ export const UserStore = ({ getStore, useStoreId }: InjectionContext) => {
 }
 ```
 
-## Store Onunmounted
+## Store OnUnmounted
 
 > stores/appStore.ts
 ```ts
