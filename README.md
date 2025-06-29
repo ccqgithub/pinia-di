@@ -14,7 +14,7 @@ npm install pinia pinia-di
 
 ```mermaid
 flowchart TD
-A{{"StoreProvider[AppStore, MessageStore]\nInjectorA"}} --> B["CompoentApp\nInjectorB\nconst appStore = useStore(AppStore)();\nconst messageStore = useStore(MessageStore)()"]
+A{{"StoreProvider[AppStore, MessageStore]<br>InjectorA"}} --> B["CompoentApp\nInjectorB\nconst appStore = useStore(AppStore)();\nconst messageStore = useStore(MessageStore)()"]
 B --> C{{"StoreProvider[ChildStore]\nInjectorC"}}
 B --> D{{"StoreProvider[ChildStore]\nInjectorD"}}
 C --> E["ComponentChild\nInjectorE\nconst appStore = useStore(AppStore)();\nconst childStore = useStore(ChildStore)();"]
