@@ -1,4 +1,5 @@
 import { InjectionProvide } from './types';
 import Injector from './injector';
-export declare const getProvideArgs: (providers: InjectionProvide[], name?: string) => (Injector | import("vue").InjectionKey<Injector>)[];
+import { InjectionKey } from 'vue';
+export declare const getProvideArgs: (providers: InjectionProvide[], name?: string) => [InjectionKey<Injector>, Injector];
 //# sourceMappingURL=utils.d.ts.map
