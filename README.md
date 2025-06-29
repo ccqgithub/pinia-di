@@ -4,6 +4,12 @@
 
 DI(dependency-injection) for pinia. work with vue@3.
 
+## Installation
+
+```sh
+npm install pinia pinia-di
+```
+
 ## Flow Chart
 
 ```mermaid
