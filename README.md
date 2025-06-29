@@ -14,13 +14,13 @@ npm install pinia pinia-di
 
 ```mermaid
 flowchart TD
-A{{"StoreProvider[AppStore, MessageStore]<br>InjectorA"}} --> B["CompoentApp\nInjectorB\nconst appStore = useStore(AppStore)();\nconst messageStore = useStore(MessageStore)()"]
-B --> C{{"StoreProvider[ChildStore]\nInjectorC"}}
-B --> D{{"StoreProvider[ChildStore]\nInjectorD"}}
-C --> E["ComponentChild\nInjectorE\nconst appStore = useStore(AppStore)();\nconst childStore = useStore(ChildStore)();"]
-D --> F["ComponentChild\nInjectorF\nconst appStore = useStore(AppStore)();\nconst childStore = useStore(ChildStore)();"]
-E --> G{{"StoreProvider[ChildStore]\nInjectorG"}}
-G --> H["ComponentChild\nInjectorH\nconst appStore = useStore(AppStore)();\nconst childStore = useStore(ChildStore)();"]
+A{{"StoreProvider[AppStore, MessageStore]<br>InjectorA"}} --> B["CompoentApp<br>InjectorB<br>const appStore = useStore(AppStore)();<br>const messageStore = useStore(MessageStore)()"]
+B --> C{{"StoreProvider[ChildStore]<br>InjectorC"}}
+B --> D{{"StoreProvider[ChildStore]<br>InjectorD"}}
+C --> E["ComponentChild<br>InjectorE<br>const appStore = useStore(AppStore)();<br>const childStore = useStore(ChildStore)();"]
+D --> F["ComponentChild<br>InjectorF<br>const appStore = useStore(AppStore)();<br>const childStore = useStore(ChildStore)();"]
+E --> G{{"StoreProvider[ChildStore]<br>InjectorG"}}
+G --> H["ComponentChild<br>InjectorH<br>const appStore = useStore(AppStore)();<br>const childStore = useStore(ChildStore)();"]
 ```
 
 ## Core Concepts
