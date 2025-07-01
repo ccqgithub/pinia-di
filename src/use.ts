@@ -53,7 +53,7 @@ export function useStore(provide: any, opts: any) {
   if (!injector) {
     if (!opts || !opts.optional) {
       throw new Error(
-        `Never register any injector for ${
+        `No injector registered for ${
           (provide as any).$id || provide.toString()
         }!`
       );
