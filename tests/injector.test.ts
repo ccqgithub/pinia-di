@@ -85,7 +85,7 @@ describe('injector', () => {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         new Injector([false]);
-      }, 'Error provider onfig [false]!');
+      }, 'Provider config Error [false]!');
     });
   });
 });
