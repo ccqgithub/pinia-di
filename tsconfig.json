@@ -21,9 +21,11 @@
     "lib": ["esnext", "dom"],
     "types": ["jest", "node"],
     "rootDir": ".",
-    "preserveSymlinks": true
+    "preserveSymlinks": true,
+    "allowImportingTsExtensions": true
   },
   "include": [
-    "src"
+    "src",
+    "tests"
   ]
 }

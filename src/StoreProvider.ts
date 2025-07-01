@@ -5,7 +5,7 @@ import { useProvideStores } from './use';
 const StoreProvider = defineComponent({
   props: {
     stores: { type: Object as PropType<InjectionProvide[]>, required: true },
-    name: { type: String, requred: false }
+    name: { type: String, required: false }
   },
   setup(props, { slots }) {
     useProvideStores({
