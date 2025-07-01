@@ -62,7 +62,7 @@ export default class Injector {
 
       if (!record) {
         throw new Error(
-          `Error provider onfig [${
+          `Provider config Error [${
             (provider as any).$id || provider.toString()
           }]!`
         );
@@ -99,7 +99,7 @@ export default class Injector {
       throw new Error(
         `Store<${
           (provide as any).$id || provide.toString()
-        }> not be provided, and not optional!`
+        }> not provided, and is not optional!`
       );
     }
 
