@@ -1,5 +1,4 @@
-import { InjectionContext } from '../../types';
-import { useStore } from '../../src';
+import { InjectionContext, useStore } from '../../src';
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 
@@ -37,5 +36,8 @@ export const NameStoreWithId = (ctx: InjectionContext) => {
 };
 
 export const ChildNameStoreWithId = (ctx: InjectionContext) => {
-  return defineStore(ctx.useStoreId('child-name-nameStore'), childNameStoreFactory);
+  return defineStore(
+    ctx.useStoreId('child-name-nameStore'),
+    childNameStoreFactory
+  );
 };

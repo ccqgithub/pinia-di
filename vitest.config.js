@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import vue from '@vitejs/plugin-vue';
+import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   define: {
@@ -11,6 +12,9 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     include: ['src/**/*.{test,spec}.ts', 'tests/**/*.{test,spec}.ts'],
+    setupFiles: [
+      fileURLToPath(new URL('./tests/vitest-setup.ts', import.meta.url))
+    ],
     environment: 'happy-dom',
     typecheck: {
       enabled: true
@@ -20,8 +24,8 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'lcovonly', 'html'],
       all: true,
-      include: ['src/**/*'],
-      exclude: ['tests/**/*']
+      include: ['src/**/*', 'tests/**/*.vue'],
+      exclude: ['tests/**/*.ts']
     }
   }
 });
