@@ -99,7 +99,7 @@ export default class Injector {
       throw new Error(
         `Store<${
           (provide as any).$id || provide.toString()
-        }> not be provided, and not optional!`
+        }> not provided, and is not optional!`
       );
     }
 
