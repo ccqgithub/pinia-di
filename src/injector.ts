@@ -62,7 +62,7 @@ export default class Injector {
 
       if (!record) {
         throw new Error(
-          `Error provider onfig [${
+          `Provider config Error [${
             (provider as any).$id || provider.toString()
           }]!`
         );
